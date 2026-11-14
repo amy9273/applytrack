@@ -52,7 +52,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   const upcomingInterviewsCount = applications.reduce((count, app) => {
     return (
       count +
-      app.activities.filter(
+      (app.activities || []).filter(
         (act) => act.type === "INTERVIEW" && act.status === "SCHEDULED"
       ).length
     );
@@ -68,7 +68,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
   // Flatten upcoming activities
   const allActivities = applications
     .flatMap((app) =>
-      app.activities.map((act) => ({
+      (app.activities || []).map((act) => ({
         ...act,
         companyName: app.companyName,
         positionRole: app.positionRole,

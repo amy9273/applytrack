@@ -127,7 +127,7 @@ export const ApplicationsListView: React.FC<ApplicationsListViewProps> = ({
                     </span>
                     <span>•</span>
                     <span className="text-blue-700 font-semibold">
-                      {app.emails.length} {app.emails.length === 1 ? "email communication" : "email communications"}
+                      {(app.emails?.length ?? app._count?.emails ?? 0)} {(app.emails?.length ?? app._count?.emails ?? 0) === 1 ? "email communication" : "email communications"}
                     </span>
                   </div>
                 </div>
@@ -160,7 +160,7 @@ export const ApplicationsListView: React.FC<ApplicationsListViewProps> = ({
               </div>
 
               {/* Scheduled Activities Preview */}
-              {app.activities.length > 0 && (
+              {(app.activities && app.activities.length > 0) && (
                 <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-100">
                   {app.activities.map((act) => (
                     <div
@@ -206,26 +206,30 @@ export const ApplicationsListView: React.FC<ApplicationsListViewProps> = ({
                     <span className="text-[11px] text-slate-400">Chronological Order</span>
                   </div>
 
-                  <div className="relative border-l-2 border-blue-200 ml-3 pl-4 space-y-3">
-                    {app.emails.map((email, idx) => (
-                      <div key={email.id} className="relative space-y-0.5">
-                        <span className="absolute -left-[23px] top-1.5 h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow-sm" />
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-bold text-slate-900">{email.category}</span>
-                          <span className="rounded bg-slate-100 px-1.5 py-0.2 text-[10px] text-slate-500 font-medium">
-                            {email.account.email}
-                          </span>
-                          <span className="text-[11px] text-slate-400">
-                            {new Date(email.dateReceived).toLocaleDateString("en-PH", {
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </span>
+                  {(app.emails && app.emails.length > 0) ? (
+                    <div className="relative border-l-2 border-blue-200 ml-3 pl-4 space-y-3">
+                      {app.emails.map((email, idx) => (
+                        <div key={email.id} className="relative space-y-0.5">
+                          <span className="absolute -left-[23px] top-1.5 h-3 w-3 rounded-full border-2 border-white bg-blue-600 shadow-sm" />
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-900">{email.category}</span>
+                            <span className="rounded bg-slate-100 px-1.5 py-0.2 text-[10px] text-slate-500 font-medium">
+                              {email.account?.email || "Connected Inbox"}
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              {new Date(email.dateReceived).toLocaleDateString("en-PH", {
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-600 font-medium">{email.subject}</p>
                         </div>
-                        <p className="text-xs text-slate-600 font-medium">{email.subject}</p>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic pl-3">No email communications linked yet.</p>
+                  )}
                 </div>
               )}
             </div>

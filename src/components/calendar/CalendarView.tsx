@@ -24,7 +24,7 @@ export const CalendarView: React.FC<CalendarViewProps> = ({ applications }) => {
   // Flatten and sort activities
   const activities = applications
     .flatMap((app) =>
-      app.activities.map((act) => ({
+      (app.activities || []).map((act) => ({
         ...act,
         companyName: app.companyName,
         positionRole: app.positionRole,

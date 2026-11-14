@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { isOwnerSession } from "@/lib/auth/session";
-import { VISITOR_APPLICATIONS } from "@/lib/data/visitorShowcase";
+import { VISITOR_APPLICATIONS, VISITOR_EMAILS } from "@/lib/data/visitorShowcase";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,9 +9,23 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get("status");
 
-    // 1. Visitor Mode: Serve sanitized dummy applications
+    // 1. Visitor Mode: Serve sanitized dummy applications with linked emails
     if (!isOwner) {
-      let applications = [...VISITOR_APPLICATIONS];
+      let applications = VISITOR_APPLICATIONS.map((app) => ({
+        ...app,
+        emails: VISITOR_EMAILS.filter((e) => e.companyName.toLowerCase() === app.companyName.toLowerCase()).map((e) => ({
+          id: e.id,
+          subject: e.subject,
+          category: e.category,
+          dateReceived: e.dateReceived,
+          extractedStatus: e.extractedStatus,
+          account: {
+            email: e.account.email,
+            name: e.account.name,
+          },
+        })),
+      }));
+
       if (status && status !== "ALL") {
         applications = applications.filter((a) => a.currentStatus === status);
       }

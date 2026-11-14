@@ -22,7 +22,7 @@ export interface ApplicationItem {
   appliedDate: string;
   lastActivityAt: string;
   notes: string | null;
-  emails: {
+  emails?: {
     id: string;
     subject: string;
     category: string | null;
@@ -33,7 +33,11 @@ export interface ApplicationItem {
       name: string | null;
     };
   }[];
-  activities: {
+  _count?: {
+    emails?: number;
+    activities?: number;
+  };
+  activities?: {
     id: string;
     type: string;
     title: string;
@@ -136,7 +140,7 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({
                     </span>
                     <span>•</span>
                     <span className="flex items-center gap-1 text-blue-600 font-medium">
-                      <Mail className="h-3.5 w-3.5" /> {app.emails.length} {app.emails.length === 1 ? "email" : "emails"}
+                      <Mail className="h-3.5 w-3.5" /> {(app.emails?.length ?? app._count?.emails ?? 0)} {(app.emails?.length ?? app._count?.emails ?? 0) === 1 ? "email" : "emails"}
                     </span>
                   </div>
                 </div>
@@ -167,7 +171,7 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({
               </div>
 
               {/* Activities Preview Bar */}
-              {app.activities.length > 0 && (
+              {(app.activities && app.activities.length > 0) && (
                 <div className="mt-3 flex flex-wrap gap-2 pt-2 border-t border-slate-100">
                   {app.activities.map((act) => (
                     <div
@@ -207,30 +211,34 @@ export const ApplicationsView: React.FC<ApplicationsViewProps> = ({
               {isExpanded && (
                 <div className="mt-4 pt-3 border-t border-slate-200 space-y-2">
                   <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block">
-                    Linked Email Communications ({app.emails.length})
+                    Linked Email Communications ({(app.emails?.length ?? app._count?.emails ?? 0)})
                   </span>
-                  <div className="space-y-1.5">
-                    {app.emails.map((e) => (
-                      <div
-                        key={e.id}
-                        className="flex items-center justify-between rounded-lg bg-slate-50 p-2.5 text-xs text-slate-700 border border-slate-150"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="rounded bg-white px-1.5 py-0.5 text-[10px] font-medium border border-slate-200 text-slate-500">
-                            {e.account.email}
+                  {(app.emails && app.emails.length > 0) ? (
+                    <div className="space-y-1.5">
+                      {app.emails.map((e) => (
+                        <div
+                          key={e.id}
+                          className="flex items-center justify-between rounded-lg bg-slate-50 p-2.5 text-xs text-slate-700 border border-slate-150"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="rounded bg-white px-1.5 py-0.5 text-[10px] font-medium border border-slate-200 text-slate-500">
+                              {e.account?.email || "Connected Inbox"}
+                            </span>
+                            <span className="font-semibold text-slate-900">{e.category || "Email"}:</span>
+                            <span className="text-slate-600 truncate max-w-md">{e.subject}</span>
+                          </div>
+                          <span className="text-[11px] text-slate-400">
+                            {new Date(e.dateReceived).toLocaleDateString("en-PH", {
+                              month: "short",
+                              day: "numeric",
+                            })}
                           </span>
-                          <span className="font-semibold text-slate-900">{e.category || "Email"}:</span>
-                          <span className="text-slate-600 truncate max-w-md">{e.subject}</span>
                         </div>
-                        <span className="text-[11px] text-slate-400">
-                          {new Date(e.dateReceived).toLocaleDateString("en-PH", {
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">No emails linked yet.</p>
+                  )}
                 </div>
               )}
             </div>
