@@ -3,6 +3,7 @@ import { exchangeCodeForTokens } from "@/lib/google/auth";
 import { fetchRecruitmentEmails } from "@/lib/google/gmail";
 import { classifyAndExtractEmail } from "@/lib/ai/classifier";
 import { prisma } from "@/lib/prisma";
+import { OWNER_COOKIE_NAME, createOwnerSessionToken } from "@/lib/auth/session";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -165,7 +166,17 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.redirect(`${baseUrl}?auth_success=true&account=${encodeURIComponent(email)}`);
+    const response = NextResponse.redirect(`${baseUrl}?auth_success=true&account=${encodeURIComponent(email)}`);
+    response.cookies.set({
+      name: OWNER_COOKIE_NAME,
+      value: createOwnerSessionToken(email, name || undefined),
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+      secure: process.env.NODE_ENV === "production",
+    });
+    return response;
   } catch (error) {
     console.error("Failed to complete OAuth callback:", error);
     return NextResponse.redirect(`${baseUrl}?auth_error=exchange_failed`);

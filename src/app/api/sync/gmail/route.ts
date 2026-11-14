@@ -1,21 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { isOwnerSession } from "@/lib/auth/session";
 import { fetchRecruitmentEmails } from "@/lib/google/gmail";
 import { classifyAndExtractEmail } from "@/lib/ai/classifier";
 
 export async function POST(request: NextRequest) {
   try {
+    const isOwner = isOwnerSession(request);
     const body = await request.json().catch(() => ({}));
     const accountId = body.accountId;
     const daysRange = body.daysRange === 15 ? 15 : body.daysRange === 60 ? 60 : body.daysRange === "ALL" ? "ALL" : 30;
 
+    // Visitor Mode: Simulate instant synchronization
+    if (!isOwner) {
+      return NextResponse.json({
+        success: true,
+        syncedEmails: 8,
+        accountsSynced: 3,
+        daysRange,
+        simulated: true,
+        message: "Visitor Demo Mode: Simulated synchronization of 3 showcase inboxes.",
+      });
+    }
+
+    // Owner Mode: Execute real live Gmail API synchronization
     const accounts = accountId
       ? await prisma.account.findMany({ where: { id: accountId } })
       : await prisma.account.findMany();
 
     if (accounts.length === 0) {
       return NextResponse.json(
-        { error: "No connected accounts found to sync" },
+        { error: "No connected Gmail accounts found to sync. Connect an account first." },
         { status: 404 }
       );
     }
@@ -152,6 +167,7 @@ export async function POST(request: NextRequest) {
       syncedEmails: syncedCount,
       accountsSynced: accounts.length,
       daysRange,
+      mode: "OWNER",
     });
   } catch (error) {
     console.error("Sync API error:", error);

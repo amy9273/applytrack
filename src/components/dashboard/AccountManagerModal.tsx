@@ -35,6 +35,7 @@ interface AccountManagerModalProps {
   isSeeding: boolean;
   onSyncAccount: (id: string) => Promise<void>;
   isSyncing: boolean;
+  onOpenGoogleLogin?: () => void;
 }
 
 export const AccountManagerModal: React.FC<AccountManagerModalProps> = ({
@@ -46,6 +47,7 @@ export const AccountManagerModal: React.FC<AccountManagerModalProps> = ({
   isSeeding,
   onSyncAccount,
   isSyncing,
+  onOpenGoogleLogin,
 }) => {
   const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
@@ -60,9 +62,12 @@ export const AccountManagerModal: React.FC<AccountManagerModalProps> = ({
       const data = await res.json();
       if (data.configured && data.url) {
         window.location.href = data.url;
+      } else if (onOpenGoogleLogin) {
+        onClose();
+        onOpenGoogleLogin();
       } else {
         setOauthError(
-          "Google OAuth credentials are not set in .env.local. You can test immediately using the 'Load 3 Demo Inboxes' option below!"
+          "Google OAuth credentials are not set. Configure them in Settings or use the 'Load 3 Demo Inboxes' option."
         );
       }
     } catch (err) {

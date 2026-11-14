@@ -12,6 +12,8 @@ import { SettingsView } from "@/components/settings/SettingsView";
 import { EmailDetailModal } from "@/components/dashboard/EmailDetailModal";
 import { AccountManagerModal } from "@/components/dashboard/AccountManagerModal";
 import { NewApplicationModal } from "@/components/applications/NewApplicationModal";
+import { GoogleOAuthModal } from "@/components/auth/GoogleOAuthModal";
+import { OwnerLoginModal } from "@/components/auth/OwnerLoginModal";
 import { EmailItem } from "@/components/dashboard/EmailStream";
 import { ApplicationItem } from "@/components/dashboard/ApplicationsView";
 import { CheckCircle2, AlertCircle, X } from "lucide-react";
@@ -27,6 +29,9 @@ export default function Home() {
   const [selectedEmail, setSelectedEmail] = useState<EmailItem | null>(null);
   const [isAccountsModalOpen, setIsAccountsModalOpen] = useState(false);
   const [isNewAppModalOpen, setIsNewAppModalOpen] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
+  const [isOwnerModalOpen, setIsOwnerModalOpen] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   const [globalSearch, setGlobalSearch] = useState("");
   const [scanDays, setScanDays] = useState<number | "ALL">(30);
@@ -38,19 +43,22 @@ export default function Home() {
 
   const loadData = useCallback(async () => {
     try {
-      const [accRes, emailRes, appRes] = await Promise.all([
+      const [accRes, emailRes, appRes, statusRes] = await Promise.all([
         fetch("/api/accounts"),
         fetch("/api/emails"),
         fetch("/api/applications"),
+        fetch("/api/auth/owner/status"),
       ]);
 
       const accData = await accRes.json();
       const emailData = await emailRes.json();
       const appData = await appRes.json();
+      const statusData = await statusRes.json();
 
       setAccounts(accData.accounts || []);
       setEmails(emailData.emails || []);
       setApplications(appData.applications || []);
+      setIsOwner(statusData.isOwner || false);
     } catch (err) {
       console.error("Failed to load dashboard data:", err);
     } finally {
@@ -148,6 +156,20 @@ export default function Home() {
     }
   };
 
+  const handleLogoutOwner = async () => {
+    try {
+      await fetch("/api/auth/owner/logout", { method: "POST" });
+      setIsOwner(false);
+      setBanner({
+        type: "info",
+        message: "Switched to Visitor Demo Mode. Your private emails and inboxes are protected.",
+      });
+      await loadData();
+    } catch (err) {
+      console.error("Failed to logout owner:", err);
+    }
+  };
+
   const handleApplicationStatusChange = async (id: string, newStatus: string) => {
     try {
       const res = await fetch("/api/applications", {
@@ -227,18 +249,43 @@ export default function Home() {
           onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           globalSearch={globalSearch}
           setGlobalSearch={setGlobalSearch}
-          scanDays={scanDays}
-          setScanDays={setScanDays}
           onSyncAll={handleSyncAll}
           isSyncing={isSyncing}
-          onSeedDemo={handleSeedDemo}
-          isSeeding={isSeeding}
           accountsCount={accounts.length}
           onOpenAccounts={() => setIsAccountsModalOpen(true)}
+          onOpenGoogleLogin={() => setIsGoogleModalOpen(true)}
+          isOwner={isOwner}
+          onOpenOwnerLogin={() => setIsOwnerModalOpen(true)}
+          onLogoutOwner={handleLogoutOwner}
         />
 
         {/* Workspace Body */}
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-7xl w-full mx-auto">
+          {/* Visitor Mode Privacy Ribbon */}
+          {!isOwner && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-xl bg-amber-500/20 text-amber-800 flex items-center justify-center font-bold text-sm shrink-0">
+                  🛡️
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-amber-950">
+                    Visitor Demo Mode (Strict Candidate Privacy)
+                  </h4>
+                  <p className="text-[11px] text-amber-800">
+                    Displaying sanitized portfolio recruitment data (Canva, Thinking Machines, Citco, Maya). None of Angel&apos;s real inboxes or emails are accessible to visitors.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsOwnerModalOpen(true)}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-slate-800 shadow-sm transition-all shrink-0"
+              >
+                Owner Login
+              </button>
+            </div>
+          )}
+
           {/* Notification Banner */}
           {banner && (
             <div
@@ -289,6 +336,8 @@ export default function Home() {
               onSelectEmail={(e) => setSelectedEmail(e)}
               isLoading={isLoading}
               globalSearch={globalSearch}
+              scanDays={scanDays}
+              setScanDays={setScanDays}
             />
           )}
 
@@ -331,12 +380,20 @@ export default function Home() {
               isSyncing={isSyncing}
               scanDays={scanDays}
               setScanDays={setScanDays}
+              onOpenGoogleLogin={() => setIsGoogleModalOpen(true)}
+              isOwner={isOwner}
+              onOpenOwnerLogin={() => setIsOwnerModalOpen(true)}
             />
           )}
         </main>
       </div>
 
       {/* Modals & Slide-Overs */}
+      <GoogleOAuthModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onClearedDemoData={loadData}
+      />
       <EmailDetailModal
         email={selectedEmail}
         onClose={() => setSelectedEmail(null)}
@@ -374,6 +431,13 @@ export default function Home() {
         isOpen={isNewAppModalOpen}
         onClose={() => setIsNewAppModalOpen(false)}
         onApplicationCreated={loadData}
+      />
+
+      <OwnerLoginModal
+        isOpen={isOwnerModalOpen}
+        onClose={() => setIsOwnerModalOpen(false)}
+        onSuccess={loadData}
+        onOpenGoogleOAuth={() => setIsGoogleModalOpen(true)}
       />
     </div>
   );

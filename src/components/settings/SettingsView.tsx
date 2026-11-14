@@ -34,6 +34,9 @@ interface SettingsViewProps {
   isSyncing: boolean;
   scanDays: number | "ALL";
   setScanDays: (days: number | "ALL") => void;
+  onOpenGoogleLogin: () => void;
+  isOwner?: boolean;
+  onOpenOwnerLogin?: () => void;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({
@@ -45,6 +48,9 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   isSyncing,
   scanDays,
   setScanDays,
+  onOpenGoogleLogin,
+  isOwner = false,
+  onOpenOwnerLogin,
 }) => {
   const [oauthError, setOauthError] = useState<string | null>(null);
 
@@ -67,6 +73,43 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
   return (
     <div className="space-y-6 max-w-4xl">
+      {/* Vercel Deployment & Visitor Shield Status */}
+      <div className={`rounded-2xl border p-5 shadow-sm space-y-2.5 ${
+        isOwner
+          ? "border-emerald-200 bg-emerald-50/60"
+          : "border-amber-200 bg-amber-50/60"
+      }`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-base">{isOwner ? "👑" : "🛡️"}</span>
+            <h3 className="text-sm font-bold text-slate-900">
+              {isOwner ? "Owner Mode: Live Account Access" : "Visitor Privacy Shield: Active"}
+            </h3>
+          </div>
+          {!isOwner && onOpenOwnerLogin && (
+            <button
+              onClick={onOpenOwnerLogin}
+              className="rounded-xl bg-slate-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-sm"
+            >
+              Unlock Owner Mode
+            </button>
+          )}
+        </div>
+        <p className="text-xs text-slate-700 leading-relaxed">
+          {isOwner ? (
+            <>
+              You are currently authenticated as the owner. Your connected Gmail accounts and synchronized recruitment emails are active.
+              When recruiters or guests visit your deployed Vercel URL without your PIN, they will automatically see a pure dummy database to keep your personal data 100% private.
+            </>
+          ) : (
+            <>
+              Public visitors and recruiters currently see a sanitized showcase database (Canva, Thinking Machines, Citco, Maya).
+              Your real Gmail inboxes and personal emails are completely locked and hidden from view.
+            </>
+          )}
+        </p>
+      </div>
+
       {/* Privacy Guarantee Card */}
       <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-5 space-y-2">
         <div className="flex items-center gap-2 text-blue-900 font-bold text-sm">
@@ -139,10 +182,10 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
 
           <div className="flex items-center gap-2">
             <button
-              onClick={handleConnectGoogle}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-sm"
+              onClick={onOpenGoogleLogin}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-blue-600 px-3.5 py-2 text-xs font-bold text-white hover:bg-blue-700 transition-colors shadow-sm"
             >
-              <Plus className="h-3.5 w-3.5" /> Connect New Gmail Account
+              <Plus className="h-3.5 w-3.5" /> Sign In with Google
             </button>
 
             <button

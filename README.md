@@ -17,12 +17,24 @@ Applying for software engineering internships and OJT placements often involves:
 
 ## ⚡ Core Features (MVP)
 
-1. **Multi-Gmail Inbox Connectivity**:
+1. **Dual-Mode Visitor Privacy Shield (Vercel-Ready)**:
+   - **Automatic Visitor Mode**: Public visitors and recruiters automatically see a rich, sanitized showcase database (Alex Santos / Canva, Thinking Machines, Citco, Maya, StellarPH).
+   - **Zero Privacy Violation**: Your real personal emails, Google OAuth tokens, and DLSL OJT documents are 100% hidden and inaccessible to guests.
+   - **Owner Mode**: Unlock your live workspace using your secret Master Owner PIN or Google OAuth.
+   - **Zero-Crash Cold Starts**: Visitor mode runs without requiring an active external database on Vercel.
+
+2. **Multi-Gmail Inbox Connectivity**:
    - Google OAuth 2.0 with minimal **read-only** permissions (`gmail.readonly`).
-   - Supports 3+ concurrent Gmail accounts.
+   - Supports 3+ concurrent Gmail accounts (Work/Primary, University OJT, Personal/Dev).
    - Targeted queries retrieve only recruitment emails, preserving personal email privacy.
 
-2. **Automated 12-Category Classification**:
+3. **Multi-Platform Recruitment Scanning**:
+   - Direct company communications
+   - **LinkedIn** job applications & status updates
+   - **JobStreet** notifications
+   - **Indeed** interview & assessment requests
+
+4. **Automated 12-Category Classification**:
    - *Application Confirmation*, *Application Update*
    - *Interview Invitation*, *Interview Confirmation*, *Final Interview*
    - *Assessment Invitation*, *Assessment Instructions*, *Assessment Confirmation*

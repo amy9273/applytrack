@@ -30,6 +30,8 @@ interface EmailOrganizerViewProps {
   onSelectEmail: (email: EmailItem) => void;
   isLoading: boolean;
   globalSearch: string;
+  scanDays: number | "ALL";
+  setScanDays: (days: number | "ALL") => void;
 }
 
 export const EmailOrganizerView: React.FC<EmailOrganizerViewProps> = ({
@@ -38,6 +40,8 @@ export const EmailOrganizerView: React.FC<EmailOrganizerViewProps> = ({
   onSelectEmail,
   isLoading,
   globalSearch,
+  scanDays,
+  setScanDays,
 }) => {
   const [selectedAccountId, setSelectedAccountId] = useState<string>("ALL");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
@@ -213,6 +217,17 @@ export const EmailOrganizerView: React.FC<EmailOrganizerViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Timeframe Dropdown */}
+          <select
+            value={scanDays}
+            onChange={(e) => setScanDays(e.target.value === "ALL" ? "ALL" : Number(e.target.value))}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 focus:border-blue-500 focus:outline-none shadow-sm"
+          >
+            <option value={15}>Last 15 Days</option>
+            <option value={30}>Last 30 Days</option>
+            <option value="ALL">All Time</option>
+          </select>
+
           {/* Category Dropdown */}
           <select
             value={selectedCategory}
