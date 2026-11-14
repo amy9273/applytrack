@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { getGoogleAuthUrl } from "@/lib/google/auth";
+import { getGoogleAuthUrl, getEffectiveRedirectUri } from "@/lib/google/auth";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const clientId = process.env.GOOGLE_CLIENT_ID || "";
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET || "";
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/api/auth/google/callback";
+  const redirectUri = getEffectiveRedirectUri(request);
 
   return NextResponse.json({
     configured: Boolean(clientId && clientSecret),
@@ -55,7 +55,8 @@ export async function POST(request: NextRequest) {
     fs.writeFileSync(envPath, envContent.trim() + "\n", "utf-8");
 
     // Generate OAuth URL
-    const authUrl = getGoogleAuthUrl();
+    const redirectUri = getEffectiveRedirectUri(request);
+    const authUrl = getGoogleAuthUrl(redirectUri);
 
     return NextResponse.json({
       success: true,

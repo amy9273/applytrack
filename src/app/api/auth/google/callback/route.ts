@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exchangeCodeForTokens } from "@/lib/google/auth";
+import { exchangeCodeForTokens, getBaseUrl, getEffectiveRedirectUri } from "@/lib/google/auth";
 import { fetchRecruitmentEmails } from "@/lib/google/gmail";
 import { classifyAndExtractEmail } from "@/lib/ai/classifier";
 import { prisma } from "@/lib/prisma";
@@ -10,7 +10,8 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const error = searchParams.get("error");
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const baseUrl = getBaseUrl(request);
+  const redirectUri = getEffectiveRedirectUri(request);
 
   if (error || !code) {
     console.error("OAuth callback error:", error);
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { tokens, email, name, picture } = await exchangeCodeForTokens(code);
+    const { tokens, email, name, picture } = await exchangeCodeForTokens(code, redirectUri);
 
     if (!email) {
       return NextResponse.redirect(`${baseUrl}?auth_error=no_email_provided`);
