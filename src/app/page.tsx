@@ -1,28 +1,41 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Navbar } from "@/components/layout/Navbar";
-import { MetricsCards } from "@/components/dashboard/MetricsCards";
-import { EmailStream, EmailItem } from "@/components/dashboard/EmailStream";
+import { Sidebar, NavSection } from "@/components/layout/Sidebar";
+import { Topbar } from "@/components/layout/Topbar";
+import { DashboardOverview } from "@/components/dashboard/DashboardOverview";
+import { EmailOrganizerView } from "@/components/emails/EmailOrganizerView";
+import { ApplicationsListView } from "@/components/applications/ApplicationsListView";
+import { CalendarView } from "@/components/calendar/CalendarView";
+import { TasksView } from "@/components/tasks/TasksView";
+import { SettingsView } from "@/components/settings/SettingsView";
 import { EmailDetailModal } from "@/components/dashboard/EmailDetailModal";
-import { ApplicationsView, ApplicationItem } from "@/components/dashboard/ApplicationsView";
 import { AccountManagerModal } from "@/components/dashboard/AccountManagerModal";
-import { CheckCircle2, AlertCircle, Sparkles, Inbox } from "lucide-react";
+import { NewApplicationModal } from "@/components/applications/NewApplicationModal";
+import { EmailItem } from "@/components/dashboard/EmailStream";
+import { ApplicationItem } from "@/components/dashboard/ApplicationsView";
+import { CheckCircle2, AlertCircle, X } from "lucide-react";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<"overview" | "emails" | "applications">("overview");
+  const [currentSection, setCurrentSection] = useState<NavSection>("dashboard");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   const [accounts, setAccounts] = useState<any[]>([]);
   const [emails, setEmails] = useState<EmailItem[]>([]);
   const [applications, setApplications] = useState<ApplicationItem[]>([]);
+
   const [selectedEmail, setSelectedEmail] = useState<EmailItem | null>(null);
   const [isAccountsModalOpen, setIsAccountsModalOpen] = useState(false);
+  const [isNewAppModalOpen, setIsNewAppModalOpen] = useState(false);
+
+  const [globalSearch, setGlobalSearch] = useState("");
+  const [scanDays, setScanDays] = useState<number | "ALL">(30);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isSeeding, setIsSeeding] = useState(false);
   const [banner, setBanner] = useState<{ type: "success" | "error" | "info"; message: string } | null>(null);
 
-  // Fetch all core data
   const loadData = useCallback(async () => {
     try {
       const [accRes, emailRes, appRes] = await Promise.all([
@@ -48,7 +61,6 @@ export default function Home() {
   useEffect(() => {
     loadData();
 
-    // Check OAuth return params
     const params = new URLSearchParams(window.location.search);
     if (params.get("auth_success")) {
       const accountEmail = params.get("account") || "Gmail account";
@@ -66,16 +78,19 @@ export default function Home() {
     }
   }, [loadData]);
 
-  // Sync all inboxes
   const handleSyncAll = async () => {
     setIsSyncing(true);
     try {
-      const res = await fetch("/api/sync/gmail", { method: "POST" });
+      const res = await fetch("/api/sync/gmail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ daysRange: scanDays }),
+      });
       const data = await res.json();
       if (res.ok) {
         setBanner({
           type: "success",
-          message: `Sync complete! Scanned and updated ${data.syncedEmails ?? 0} emails.`,
+          message: `Sync complete (${scanDays === "ALL" ? "All Time" : `${scanDays} Days`})! Scanned and updated ${data.syncedEmails ?? 0} emails.`,
         });
         await loadData();
       } else {
@@ -84,7 +99,7 @@ export default function Home() {
           message: data.error || "Failed to sync Gmail accounts",
         });
       }
-    } catch (err) {
+    } catch {
       setBanner({
         type: "error",
         message: "Failed to connect to sync service",
@@ -94,7 +109,6 @@ export default function Home() {
     }
   };
 
-  // Seed demo inboxes
   const handleSeedDemo = async () => {
     setIsSeeding(true);
     try {
@@ -103,17 +117,17 @@ export default function Home() {
       if (res.ok) {
         setBanner({
           type: "success",
-          message: `Loaded ${data.accountsCount} simulated student inboxes with ${data.emailsCount} recruitment emails (Citco, StellarPH, GlobalTransco, Maya, Canva)!`,
+          message: `Loaded Angel Balion's 3 inboxes with ${data.emailsCount} recruitment emails (Citco, StellarPH, GlobalTransco, Maya, Canva)!`,
         });
         await loadData();
         setIsAccountsModalOpen(false);
       } else {
         setBanner({
           type: "error",
-          message: "Failed to seed demo inboxes",
+          message: "Failed to seed inboxes",
         });
       }
-    } catch (err) {
+    } catch {
       setBanner({
         type: "error",
         message: "Network error while loading demo data",
@@ -123,7 +137,6 @@ export default function Home() {
     }
   };
 
-  // Disconnect account
   const handleDisconnectAccount = async (id: string) => {
     try {
       const res = await fetch(`/api/accounts?id=${id}`, { method: "DELETE" });
@@ -135,7 +148,6 @@ export default function Home() {
     }
   };
 
-  // Update application status
   const handleApplicationStatusChange = async (id: string, newStatus: string) => {
     try {
       const res = await fetch("/api/applications", {
@@ -151,130 +163,180 @@ export default function Home() {
     }
   };
 
-  // Compute stats
-  const upcomingActivitiesCount = applications.reduce(
-    (acc, app) => acc + (app.activities ? app.activities.length : 0),
-    0
-  );
   const needsReviewCount = emails.filter((e) => e.needsReview).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Top Navigation */}
-      <Navbar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+      {/* 1. Desktop Left Sidebar */}
+      <Sidebar
+        currentSection={currentSection}
+        onSelectSection={(sec) => {
+          setCurrentSection(sec);
+          setIsMobileMenuOpen(false);
+        }}
         accountsCount={accounts.length}
+        totalEmailsCount={emails.length}
+        totalApplicationsCount={applications.length}
+        needsReviewCount={needsReviewCount}
         onOpenAccounts={() => setIsAccountsModalOpen(true)}
-        onSyncAll={handleSyncAll}
-        isSyncing={isSyncing}
-        onSeedDemo={handleSeedDemo}
-        isSeeding={isSeeding}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Banner Notification */}
-        {banner && (
+      {/* Mobile Drawer Menu */}
+      {isMobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex lg:hidden">
           <div
-            className={`rounded-xl border p-4 flex items-center justify-between shadow-sm transition-all ${
-              banner.type === "success"
-                ? "bg-emerald-50 border-emerald-200 text-emerald-900"
-                : banner.type === "error"
-                ? "bg-rose-50 border-rose-200 text-rose-900"
-                : "bg-blue-50 border-blue-200 text-blue-900"
-            }`}
-          >
-            <div className="flex items-center gap-3 text-xs sm:text-sm font-medium">
-              {banner.type === "success" ? (
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-rose-600 shrink-0" />
-              )}
-              <span>{banner.message}</span>
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <div className="relative flex w-64 flex-col bg-white shadow-2xl z-10">
+            <div className="flex h-16 items-center justify-between px-6 border-b border-slate-100">
+              <span className="font-bold text-slate-900">ApplyTrack</span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
-            <button
-              onClick={() => setBanner(null)}
-              className="text-xs font-semibold underline ml-4 hover:opacity-75"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-
-        {/* Hero Welcome banner for 0 accounts */}
-        {accounts.length === 0 && !isLoading && (
-          <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-600 to-indigo-600 p-6 sm:p-8 text-white shadow-lg">
-            <div className="max-w-2xl space-y-3">
-              <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 backdrop-blur-md px-3 py-1 text-xs font-medium text-white border border-white/20">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>Solve the 3-Gmail Inbox Chaos</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                Welcome to ApplyTrack
-              </h1>
-              <p className="text-sm sm:text-base text-blue-100 leading-relaxed">
-                Automatically gather, classify, and extract internship application details across your personal, university,
-                and professional Gmail accounts. No more spreadsheets or manual copy-pasting.
-              </p>
-              <div className="pt-2 flex flex-wrap gap-3">
-                <button
-                  onClick={handleSeedDemo}
-                  disabled={isSeeding}
-                  className="rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-blue-700 shadow-md hover:bg-blue-50 transition-all flex items-center gap-2"
-                >
-                  <Sparkles className="h-4 w-4 text-purple-600" />
-                  {isSeeding ? "Loading Demo Inboxes..." : "Load 3 Demo Student Inboxes (Instant Demo)"}
-                </button>
-
-                <button
-                  onClick={() => setIsAccountsModalOpen(true)}
-                  className="rounded-xl bg-blue-700/80 hover:bg-blue-700 px-4 py-2.5 text-xs font-semibold text-white border border-white/20 transition-all flex items-center gap-2"
-                >
-                  <Inbox className="h-4 w-4" />
-                  Connect Google Account
-                </button>
-              </div>
+            <div className="flex-1 overflow-y-auto p-3">
+              <Sidebar
+                currentSection={currentSection}
+                onSelectSection={(sec) => {
+                  setCurrentSection(sec);
+                  setIsMobileMenuOpen(false);
+                }}
+                accountsCount={accounts.length}
+                totalEmailsCount={emails.length}
+                totalApplicationsCount={applications.length}
+                needsReviewCount={needsReviewCount}
+                onOpenAccounts={() => {
+                  setIsAccountsModalOpen(true);
+                  setIsMobileMenuOpen(false);
+                }}
+              />
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Metrics Row */}
-        <MetricsCards
-          totalEmails={emails.length}
-          totalApplications={applications.length}
-          upcomingActivitiesCount={upcomingActivitiesCount}
-          needsReviewCount={needsReviewCount}
+      {/* 2. Main Content Layout (Offset by sidebar width on desktop) */}
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-64">
+        {/* Top Header */}
+        <Topbar
+          currentSection={currentSection}
+          onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
+          globalSearch={globalSearch}
+          setGlobalSearch={setGlobalSearch}
+          scanDays={scanDays}
+          setScanDays={setScanDays}
+          onSyncAll={handleSyncAll}
+          isSyncing={isSyncing}
+          onSeedDemo={handleSeedDemo}
+          isSeeding={isSeeding}
           accountsCount={accounts.length}
-          onFilterNeedsReview={() => {
-            setActiveTab("emails");
-          }}
-          onViewApplications={() => setActiveTab("applications")}
+          onOpenAccounts={() => setIsAccountsModalOpen(true)}
         />
 
-        {/* Tab Views */}
-        {activeTab === "overview" || activeTab === "emails" ? (
-          <div className="space-y-4">
-            <EmailStream
+        {/* Workspace Body */}
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-7xl w-full mx-auto">
+          {/* Notification Banner */}
+          {banner && (
+            <div
+              className={`rounded-2xl border p-4 flex items-center justify-between shadow-sm transition-all ${
+                banner.type === "success"
+                  ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                  : banner.type === "error"
+                  ? "bg-rose-50 border-rose-200 text-rose-900"
+                  : "bg-blue-50 border-blue-200 text-blue-900"
+              }`}
+            >
+              <div className="flex items-center gap-3 text-xs sm:text-sm font-medium">
+                {banner.type === "success" ? (
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
+                ) : (
+                  <AlertCircle className="h-5 w-5 text-rose-600 shrink-0" />
+                )}
+                <span>{banner.message}</span>
+              </div>
+              <button
+                onClick={() => setBanner(null)}
+                className="text-xs font-semibold underline ml-4 hover:opacity-75"
+              >
+                Dismiss
+              </button>
+            </div>
+          )}
+
+          {/* Section Router */}
+          {currentSection === "dashboard" && (
+            <DashboardOverview
+              emails={emails}
+              applications={applications}
+              onSelectEmail={(e) => setSelectedEmail(e)}
+              onNavigateToEmails={() => setCurrentSection("emails")}
+              onNavigateToApplications={() => setCurrentSection("applications")}
+              onNavigateToCalendar={() => setCurrentSection("calendar")}
+              onNavigateToTasks={() => setCurrentSection("tasks")}
+              onSync={handleSyncAll}
+              isSyncing={isSyncing}
+            />
+          )}
+
+          {currentSection === "emails" && (
+            <EmailOrganizerView
               emails={emails}
               accounts={accounts}
-              selectedEmail={selectedEmail}
-              onSelectEmail={(email) => setSelectedEmail(email)}
+              onSelectEmail={(e) => setSelectedEmail(e)}
               isLoading={isLoading}
+              globalSearch={globalSearch}
             />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <ApplicationsView
+          )}
+
+          {currentSection === "applications" && (
+            <ApplicationsListView
               applications={applications}
               onStatusChange={handleApplicationStatusChange}
+              onOpenNewApplicationModal={() => setIsNewAppModalOpen(true)}
               isLoading={isLoading}
             />
-          </div>
-        )}
-      </main>
+          )}
 
-      {/* Modals */}
+          {currentSection === "calendar" && (
+            <CalendarView applications={applications} />
+          )}
+
+          {currentSection === "tasks" && (
+            <TasksView />
+          )}
+
+          {currentSection === "settings" && (
+            <SettingsView
+              accounts={accounts}
+              onDisconnectAccount={handleDisconnectAccount}
+              onSeedDemo={handleSeedDemo}
+              isSeeding={isSeeding}
+              onSyncAccount={async (id) => {
+                setIsSyncing(true);
+                try {
+                  await fetch("/api/sync/gmail", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ accountId: id, daysRange: scanDays }),
+                  });
+                  await loadData();
+                } finally {
+                  setIsSyncing(false);
+                }
+              }}
+              isSyncing={isSyncing}
+              scanDays={scanDays}
+              setScanDays={setScanDays}
+            />
+          )}
+        </main>
+      </div>
+
+      {/* Modals & Slide-Overs */}
       <EmailDetailModal
         email={selectedEmail}
         onClose={() => setSelectedEmail(null)}
@@ -298,7 +360,7 @@ export default function Home() {
             await fetch("/api/sync/gmail", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ accountId: id }),
+              body: JSON.stringify({ accountId: id, daysRange: scanDays }),
             });
             await loadData();
           } finally {
@@ -306,6 +368,12 @@ export default function Home() {
           }
         }}
         isSyncing={isSyncing}
+      />
+
+      <NewApplicationModal
+        isOpen={isNewAppModalOpen}
+        onClose={() => setIsNewAppModalOpen(false)}
+        onApplicationCreated={loadData}
       />
     </div>
   );

@@ -12,19 +12,25 @@ export interface RawGmailEmail {
   bodyContent: string;
 }
 
-export const RECRUITMENT_SEARCH_QUERY =
-  'internship OR "application received" OR "application status" OR "interview invitation" OR "technical assessment" OR "online assessment" OR "coding test" OR "HackerRank" OR "Codility" OR "OJT" OR "MOA" OR "regret to inform" OR "offer letter" OR "HR" OR "recruiter"';
+export const RECRUITMENT_SEARCH_KEYWORDS =
+  'internship OR "job application" OR "application received" OR "application status" OR "interview invitation" OR "technical assessment" OR "online assessment" OR "coding test" OR "HackerRank" OR "Codility" OR "OJT" OR "MOA" OR "regret to inform" OR "offer letter" OR "HR" OR "recruiter"';
 
 export async function fetchRecruitmentEmails(
   accessToken: string,
   refreshToken?: string | null,
-  maxResults = 35
+  maxResults = 40,
+  daysRange: number | "ALL" = 30
 ): Promise<RawGmailEmail[]> {
   const gmail = getAuthenticatedGmailClient(accessToken, refreshToken);
 
+  let query = RECRUITMENT_SEARCH_KEYWORDS;
+  if (typeof daysRange === "number" && daysRange > 0) {
+    query = `(${RECRUITMENT_SEARCH_KEYWORDS}) newer_than:${daysRange}d`;
+  }
+
   const listResponse = await gmail.users.messages.list({
     userId: "me",
-    q: RECRUITMENT_SEARCH_QUERY,
+    q: query,
     maxResults,
   });
 
@@ -52,7 +58,6 @@ export async function fetchRecruitmentEmails(
       const dateHeader = getHeader("Date");
       const toHeader = getHeader("To") || "";
 
-      // Parse sender name and email
       let senderName = "";
       let senderEmail = fromHeader;
       const match = fromHeader.match(/^(.*?)\s*<(.+?)>$/);
@@ -61,7 +66,6 @@ export async function fetchRecruitmentEmails(
         senderEmail = match[2].trim();
       }
 
-      // Extract body text
       let bodyContent = "";
       if (payload.parts && payload.parts.length > 0) {
         for (const part of payload.parts) {

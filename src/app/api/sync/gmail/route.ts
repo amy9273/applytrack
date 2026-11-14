@@ -7,8 +7,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
     const accountId = body.accountId;
+    const daysRange = body.daysRange === 15 ? 15 : body.daysRange === 60 ? 60 : body.daysRange === "ALL" ? "ALL" : 30;
 
-    // Find target account(s)
     const accounts = accountId
       ? await prisma.account.findMany({ where: { id: accountId } })
       : await prisma.account.findMany();
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       });
 
       try {
-        const rawEmails = await fetchRecruitmentEmails(acc.accessToken, acc.refreshToken, 25);
+        const rawEmails = await fetchRecruitmentEmails(acc.accessToken, acc.refreshToken, 40, daysRange);
 
         for (const item of rawEmails) {
           const extracted = await classifyAndExtractEmail(
@@ -99,7 +99,6 @@ export async function POST(request: NextRequest) {
             },
           });
 
-          // Application clustering
           if (extracted.companyName && extracted.positionRole) {
             const app = await prisma.application.upsert({
               where: {
@@ -150,6 +149,7 @@ export async function POST(request: NextRequest) {
       success: true,
       syncedEmails: syncedCount,
       accountsSynced: accounts.length,
+      daysRange,
     });
   } catch (error) {
     console.error("Sync API error:", error);
