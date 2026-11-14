@@ -419,6 +419,10 @@ export default function Home() {
           }
         }}
         isSyncing={isSyncing}
+        onOpenGoogleLogin={() => {
+          setIsAccountsModalOpen(false);
+          setIsGoogleModalOpen(true);
+        }}
       />
 
       <NewApplicationModal

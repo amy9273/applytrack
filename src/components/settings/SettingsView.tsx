@@ -61,14 +61,12 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
       const data = await res.json();
       if (data.configured && data.url) {
         window.location.href = data.url;
-      } else {
-        setOauthError(
-          "Google OAuth credentials (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET) are not configured in .env. You can use the 'Load Angel's Inboxes' button to test with 3 live simulated inboxes."
-        );
+        return;
       }
-    } catch {
-      setOauthError("Failed to initiate Google OAuth.");
-    }
+    } catch {}
+    
+    // Open Google credentials setup modal
+    onOpenGoogleLogin();
   };
 
   return (

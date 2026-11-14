@@ -62,19 +62,17 @@ export const AccountManagerModal: React.FC<AccountManagerModalProps> = ({
       const data = await res.json();
       if (data.configured && data.url) {
         window.location.href = data.url;
-      } else if (onOpenGoogleLogin) {
-        onClose();
-        onOpenGoogleLogin();
-      } else {
-        setOauthError(
-          "Google OAuth credentials are not set. Configure them in Settings or use the 'Load 3 Demo Inboxes' option."
-        );
+        return;
       }
-    } catch (err) {
-      setOauthError("Failed to initiate Google OAuth. Please check server configuration.");
-    } finally {
-      setIsConnectingGoogle(false);
+    } catch {}
+
+    if (onOpenGoogleLogin) {
+      onClose();
+      onOpenGoogleLogin();
+    } else {
+      setOauthError("Google OAuth credentials are not set. Please configure them in Settings.");
     }
+    setIsConnectingGoogle(false);
   };
 
   return (
