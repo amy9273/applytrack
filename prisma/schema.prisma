@@ -1,0 +1,106 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Account {
+  id           String         @id @default(uuid())
+  email        String         @unique
+  name         String?
+  accessToken  String?
+  refreshToken String?
+  tokenExpiry  DateTime?
+  avatarUrl    String?
+  lastSyncAt   DateTime?
+  syncStatus   String         @default("IDLE") // IDLE, SYNCING, SUCCESS, ERROR
+  emails       EmailMessage[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model EmailMessage {
+  id              String       @id @default(uuid())
+  accountId       String
+  account         Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  gmailMessageId  String       @unique
+  gmailThreadId   String?
+  sender          String
+  senderName      String?
+  recipient       String
+  subject         String
+  dateReceived    DateTime
+  snippet         String
+  bodyContent     String?
+  
+  // Classification
+  isRecruitment   Boolean      @default(false)
+  category        String?      // Application Confirmation, Interview Invitation, etc.
+  confidenceScore Float?       @default(1.0)
+  needsReview     Boolean      @default(false)
+
+  // Extracted Information
+  companyName     String?
+  positionRole    String?
+  extractedStatus String?      // APPLIED, UNDER_REVIEW, ASSESSMENT, INTERVIEW, OFFERED, REJECTED, etc.
+  
+  // Schedules & Deadlines
+  eventDate       DateTime?
+  eventTime       String?
+  timezone        String?      @default("Asia/Manila")
+  meetingLink     String?
+  location        String?
+  deadlineDate    DateTime?
+  
+  // HR & Actionable steps
+  hrContact       String?
+  nextSteps       String?
+  instructions    String?
+
+  applicationId   String?
+  application     Application? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([accountId])
+  @@index([category])
+  @@index([companyName])
+}
+
+model Application {
+  id             String         @id @default(uuid())
+  companyName    String
+  positionRole   String
+  currentStatus  String         @default("APPLIED") // APPLIED, ASSESSMENT, INTERVIEW, OFFERED, REJECTED, WITHDRAWN
+  appliedDate    DateTime       @default(now())
+  lastActivityAt DateTime       @default(now())
+  notes          String?
+  emails         EmailMessage[]
+  activities     Activity[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@unique([companyName, positionRole])
+}
+
+model Activity {
+  id            String       @id @default(uuid())
+  applicationId String
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  type          String       // INTERVIEW, ASSESSMENT, EXAM, DEADLINE, HR_CALL
+  title         String
+  scheduledAt   DateTime
+  durationMins  Int?         @default(45)
+  timezone      String       @default("Asia/Manila")
+  meetingLink   String?
+  status        String       @default("SCHEDULED") // SCHEDULED, COMPLETED, CANCELLED
+  sourceEmailId String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([applicationId])
+}
