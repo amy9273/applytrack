@@ -83,10 +83,10 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-300 border border-blue-400/20">
             <Sparkles className="h-3.5 w-3.5 text-blue-400" />
-            <span>{isOwner ? "Owner Workspace • Asia/Manila" : "Portfolio Demo Showcase • Visitor Shield Active"}</span>
+            <span>{isOwner ? "Owner Workspace • Asia/Manila" : "Visitor Mode • Sample Data"}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-            {isOwner ? "Good day, Angel Amaya" : "Recruitment Organizer Showcase"}
+            {isOwner ? "Good day, Angel Amaya" : "Visitor Mode"}
           </h2>
           <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
             {isOwner ? (
