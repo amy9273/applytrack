@@ -23,6 +23,7 @@ export interface ExtractedEmailData {
   companyName: string | null;
   positionRole: string | null;
   extractedStatus: "APPLIED" | "UNDER_REVIEW" | "ASSESSMENT" | "INTERVIEW" | "OFFERED" | "REJECTED" | "OJT_PROCESSING";
+  sourcePlatform: "DIRECT" | "LINKEDIN" | "JOBSTREET" | "INDEED";
   eventDate: Date | null;
   eventTime: string | null;
   timezone: string;
@@ -36,7 +37,7 @@ export interface ExtractedEmailData {
 
 /**
  * High-precision deterministic NLP extractor.
- * Serves as instantaneous offline extractor and robust fallback for AI API.
+ * Supports direct emails and job platform notifications (JobStreet, LinkedIn, Indeed).
  */
 export function ruleBasedClassifyAndExtract(
   subject: string,
@@ -45,12 +46,44 @@ export function ruleBasedClassifyAndExtract(
   senderEmail?: string
 ): ExtractedEmailData {
   const text = `${subject}\n${body}`.toLowerCase();
+  const senderLower = (senderEmail || "").toLowerCase();
+  const senderNameLower = (senderName || "").toLowerCase();
+
+  // 1. Detect Source Platform (JobStreet, LinkedIn, Indeed, Direct)
+  let sourcePlatform: "DIRECT" | "LINKEDIN" | "JOBSTREET" | "INDEED" = "DIRECT";
+  if (
+    senderLower.includes("linkedin.com") ||
+    senderNameLower.includes("linkedin") ||
+    text.includes("via linkedin") ||
+    text.includes("linkedin job") ||
+    text.includes("applied on linkedin")
+  ) {
+    sourcePlatform = "LINKEDIN";
+  } else if (
+    senderLower.includes("jobstreet.com") ||
+    senderNameLower.includes("jobstreet") ||
+    text.includes("via jobstreet") ||
+    text.includes("jobstreet.com") ||
+    text.includes("jobstreet application")
+  ) {
+    sourcePlatform = "JOBSTREET";
+  } else if (
+    senderLower.includes("indeed.com") ||
+    senderNameLower.includes("indeed") ||
+    text.includes("via indeed") ||
+    text.includes("indeed apply") ||
+    text.includes("indeed application")
+  ) {
+    sourcePlatform = "INDEED";
+  }
 
   // Check if recruitment related
   const recruitmentSignals = [
     "internship", "intern", "ojt", "application", "applicant", "career",
     "recruitment", "interview", "assessment", "hackerrank", "codility",
-    "offer letter", "candidate", "job", "position", "moa"
+    "offer letter", "candidate", "job", "position", "moa",
+    "jobstreet", "linkedin", "indeed", "indeed apply", "application sent",
+    "application was delivered", "viewed your application", "application submitted"
   ];
   const isRecruitment = recruitmentSignals.some((signal) => text.includes(signal));
 
@@ -63,6 +96,7 @@ export function ruleBasedClassifyAndExtract(
       companyName: null,
       positionRole: null,
       extractedStatus: "APPLIED",
+      sourcePlatform,
       eventDate: null,
       eventTime: null,
       timezone: "Asia/Manila",
@@ -75,98 +109,178 @@ export function ruleBasedClassifyAndExtract(
     };
   }
 
-  // 1. Determine Category & Status
+  // 2. Determine Category & Status
   let category: RecruitmentCategory = "Other Recruitment Communication";
   let extractedStatus: ExtractedEmailData["extractedStatus"] = "APPLIED";
-  let confidenceScore = 0.85;
+  let confidenceScore = 0.88;
 
-  if (text.includes("regret to inform") || text.includes("not moving forward") || text.includes("pursue other candidates") || text.includes("unfortunately")) {
+  if (
+    text.includes("regret to inform") ||
+    text.includes("not moving forward") ||
+    text.includes("pursue other candidates") ||
+    text.includes("unfortunately") ||
+    text.includes("will not be moving forward")
+  ) {
     category = "Rejection";
     extractedStatus = "REJECTED";
-  } else if (text.includes("pleased to offer") || text.includes("job offer") || text.includes("offer of internship") || text.includes("congratulations! we are pleased")) {
+  } else if (
+    text.includes("pleased to offer") ||
+    text.includes("job offer") ||
+    text.includes("offer of internship") ||
+    text.includes("congratulations! we are pleased")
+  ) {
     category = "Acceptance";
     extractedStatus = "OFFERED";
   } else if (text.includes("final interview") || text.includes("final round") || text.includes("executive interview")) {
     category = "Final Interview";
     extractedStatus = "INTERVIEW";
-  } else if (text.includes("interview invitation") || text.includes("invite you for an interview") || text.includes("schedule an interview") || text.includes("interview schedule")) {
+  } else if (
+    text.includes("interview invitation") ||
+    text.includes("invite you for an interview") ||
+    text.includes("schedule an interview") ||
+    text.includes("interview schedule") ||
+    text.includes("technical chat")
+  ) {
     category = "Interview Invitation";
     extractedStatus = "INTERVIEW";
-  } else if (text.includes("interview confirmed") || text.includes("interview confirmation") || text.includes("your interview is confirmed")) {
+  } else if (
+    text.includes("interview confirmed") ||
+    text.includes("interview confirmation") ||
+    text.includes("your interview is confirmed")
+  ) {
     category = "Interview Confirmation";
     extractedStatus = "INTERVIEW";
-  } else if (text.includes("assessment invitation") || text.includes("coding test") || text.includes("hackerrank") || text.includes("codility") || text.includes("technical assessment") || text.includes("online exam")) {
+  } else if (
+    text.includes("assessment invitation") ||
+    text.includes("coding test") ||
+    text.includes("hackerrank") ||
+    text.includes("codility") ||
+    text.includes("technical assessment") ||
+    text.includes("online exam") ||
+    text.includes("online assessment")
+  ) {
     category = "Assessment Invitation";
     extractedStatus = "ASSESSMENT";
   } else if (text.includes("assessment instructions") || text.includes("test guidelines") || text.includes("exam guidelines")) {
     category = "Assessment Instructions";
     extractedStatus = "ASSESSMENT";
-  } else if (text.includes("assessment received") || text.includes("assessment completed") || text.includes("test submission confirmed")) {
+  } else if (
+    text.includes("assessment received") ||
+    text.includes("assessment completed") ||
+    text.includes("test submission confirmed")
+  ) {
     category = "Assessment Confirmation";
     extractedStatus = "ASSESSMENT";
-  } else if (text.includes("moa") || text.includes("memorandum of agreement") || text.includes("endorsement letter") || text.includes("ojt requirement")) {
+  } else if (
+    text.includes("moa") ||
+    text.includes("memorandum of agreement") ||
+    text.includes("endorsement letter") ||
+    text.includes("ojt requirement") ||
+    text.includes("university compliance")
+  ) {
     category = "OJT / MOA Requirements";
     extractedStatus = "OJT_PROCESSING";
-  } else if (text.includes("thank you for applying") || text.includes("application received") || text.includes("application confirmation") || text.includes("we have received your application")) {
+  } else if (
+    text.includes("thank you for applying") ||
+    text.includes("application received") ||
+    text.includes("application confirmation") ||
+    text.includes("we have received your application") ||
+    text.includes("application was sent") ||
+    text.includes("application was delivered") ||
+    text.includes("application submitted") ||
+    text.includes("indeed application") ||
+    text.includes("jobstreet application")
+  ) {
     category = "Application Confirmation";
     extractedStatus = "APPLIED";
-  } else if (text.includes("status update") || text.includes("update on your application") || text.includes("under review")) {
+  } else if (
+    text.includes("status update") ||
+    text.includes("update on your application") ||
+    text.includes("under review") ||
+    text.includes("viewed your application")
+  ) {
     category = "Application Update";
     extractedStatus = "UNDER_REVIEW";
   }
 
-  // 2. Extract Company Name
+  // 3. Extract Underlying Target Company (Handling JobStreet, LinkedIn, Indeed)
   let companyName: string | null = null;
-  // Try pattern from subject like "[Citco] ...", "StellarPH Careers", "at Maya", "Canva Team"
-  const bracketCompany = subject.match(/\[([A-Za-z0-9\s&.-]{2,25})\]/);
-  if (bracketCompany) {
-    companyName = bracketCompany[1].trim();
+
+  if (sourcePlatform === "LINKEDIN") {
+    // Examples: "Your application was sent to Citco for Software Engineer Intern"
+    // "Maya viewed your application for Frontend Developer Intern"
+    const sentMatch = subject.match(/(?:sent to|delivered to)\s+([A-Za-z0-9\s&.-]+?)(?:\s+for|\s+via|\s*$)/i);
+    const viewMatch = subject.match(/^([A-Za-z0-9\s&.-]+?)\s+viewed your application/i);
+    if (sentMatch) companyName = sentMatch[1].trim();
+    else if (viewMatch) companyName = viewMatch[1].trim();
+  } else if (sourcePlatform === "JOBSTREET") {
+    // Examples: "Your application for Software Development & QA Intern was delivered to Global Transco"
+    // "Application received: Full Stack Web Intern at Global Transco"
+    const deliveredMatch = subject.match(/(?:delivered to|sent to)\s+([A-Za-z0-9\s&.-]+)/i);
+    const atMatch = subject.match(/\bat\s+([A-Za-z0-9\s&.-]+)/i);
+    if (deliveredMatch) companyName = deliveredMatch[1].trim();
+    else if (atMatch) companyName = atMatch[1].trim();
+  } else if (sourcePlatform === "INDEED") {
+    // Examples: "Indeed Application: Venture Building Intern – Tech at StellarPH"
+    // "Your application was submitted to StellarPH"
+    const atMatch = subject.match(/\bat\s+([A-Za-z0-9\s&.-]+)/i);
+    const subMatch = subject.match(/(?:submitted to|sent to)\s+([A-Za-z0-9\s&.-]+)/i);
+    if (atMatch) companyName = atMatch[1].trim();
+    else if (subMatch) companyName = subMatch[1].trim();
   }
 
-  if (!companyName && senderName) {
+  // Bracket extraction: "[Citco] ...", "[StellarPH] ..."
+  if (!companyName) {
+    const bracketCompany = subject.match(/\[([A-Za-z0-9\s&.-]{2,25})\]/);
+    if (bracketCompany && !["linkedin", "indeed", "jobstreet"].includes(bracketCompany[1].toLowerCase())) {
+      companyName = bracketCompany[1].trim();
+    }
+  }
+
+  // Check sender name if direct email
+  if (!companyName && sourcePlatform === "DIRECT" && senderName) {
     const cleanSender = senderName.replace(/(careers|recruitment|team|hr|talent|people|hiring)/gi, "").trim();
     if (cleanSender.length >= 2 && !cleanSender.toLowerCase().includes("no-reply") && !cleanSender.toLowerCase().includes("notifications")) {
       companyName = cleanSender;
     }
   }
 
-  if (!companyName && senderEmail) {
-    const domainMatch = senderEmail.match(/@(?:[a-zA-Z0-9-]+\.)*([a-zA-Z0-9-]+)\.[a-zA-Z]{2,}/);
-    if (domainMatch && !["gmail", "yahoo", "outlook", "hotmail", "up", "edu"].includes(domainMatch[1])) {
-      companyName = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
-    }
-  }
-
-  // Fallback known common targets
-  const knownCompanies = ["Citco", "StellarPH", "GlobalTransco", "Canva", "Maya", "GCash", "Shopee", "Accenture", "Aura", "Thinking Machines"];
+  // Check known actual targets
+  const knownCompanies = [
+    "Citco", "StellarPH", "Global Transco", "GlobalTransco", "Maya",
+    "Canva", "Thinking Machines", "Shopee", "GCash", "Accenture", "Aura"
+  ];
   for (const c of knownCompanies) {
     if (new RegExp(`\\b${c}\\b`, "i").test(subject) || new RegExp(`\\b${c}\\b`, "i").test(body)) {
-      companyName = c;
+      companyName = c === "GlobalTransco" ? "Global Transco" : c;
       break;
     }
   }
 
-  // 3. Extract Position / Role
+  // 4. Extract Position / Role
   let positionRole: string | null = null;
-  const roleMatch = text.match(/(software engineer(?:ing)? intern(?:ship)?|frontend developer intern|backend developer intern|full stack(?: web)? intern|data analyst intern|qa intern|quality assurance intern|product intern|ui\/ux intern|it intern(?:ship)?|ojt software engineer)/i);
+  const roleMatch = text.match(
+    /(software engineer(?:ing)? intern(?:ship)?|software development & qa intern|venture building intern(?: – tech|- tech)?|frontend developer intern|backend developer intern|full stack(?: web)? intern|data analyst intern|product design(?: \/ engineering)? intern|qa intern|quality assurance intern|it intern(?:ship)?|ojt software engineer)/i
+  );
   if (roleMatch) {
     positionRole = roleMatch[0].replace(/\b\w/g, (l) => l.toUpperCase());
   } else {
-    // Check subject for position clues
-    const subjRole = subject.match(/(?:for|as|position:?)\s+([A-Za-z\s/]{3,30}(?:Intern|Trainee|OJT|Associate|Engineer|Developer))/i);
+    const subjRole = subject.match(/(?:for|as|position:?)\s+([A-Za-z\s/–-]{3,35}(?:Intern|Trainee|OJT|Associate|Engineer|Developer))/i);
     if (subjRole) {
       positionRole = subjRole[1].trim();
     }
   }
 
-  // 4. Meeting Link (Google Meet, Zoom, MS Teams)
+  // 5. Meeting Link
   let meetingLink: string | null = null;
-  const meetMatch = body.match(/https:\/\/(?:meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}|[a-zA-Z0-9-]+\.zoom\.us\/j\/\d+|teams\.microsoft\.com\/l\/meetup-join\/[^\s<>"]+)/i);
+  const meetMatch = body.match(
+    /https:\/\/(?:meet\.google\.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}|[a-zA-Z0-9-]+\.zoom\.us\/j\/\d+|teams\.microsoft\.com\/l\/meetup-join\/[^\s<>"]+)/i
+  );
   if (meetMatch) {
     meetingLink = meetMatch[0];
   }
 
-  // 5. Date & Time Detection
+  // 6. Date & Time
   let eventDate: Date | null = null;
   let eventTime: string | null = null;
   const timeMatch = body.match(/(\b\d{1,2}:\d{2}\s*(?:AM|PM|am|pm)(?:\s*(?:-|to)\s*\d{1,2}:\d{2}\s*(?:AM|PM|am|pm))?)/);
@@ -174,8 +288,9 @@ export function ruleBasedClassifyAndExtract(
     eventTime = timeMatch[1].toUpperCase();
   }
 
-  // Look for date pattern like "November 20, 2026" or "Nov 18, 2026" or "18 Nov 2026"
-  const dateMatch = body.match(/(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)?,?\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})?/i);
+  const dateMatch = body.match(
+    /(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)?,?\s*(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})?/i
+  );
   if (dateMatch) {
     const month = dateMatch[1];
     const day = dateMatch[2];
@@ -186,10 +301,12 @@ export function ruleBasedClassifyAndExtract(
     }
   }
 
-  // 6. Deadline detection for assessments
+  // 7. Deadline
   let deadlineDate: Date | null = null;
   if (category.includes("Assessment")) {
-    const ddlMatch = body.match(/(?:deadline|complete by|submit before|expires on|due date):?\s*(?:Monday|Tuesday|Wednesday|Thursday|Friday)?,?\s*(Jan[a-z]*|Feb[a-z]*|Mar[a-z]*|Apr[a-z]*|May|Jun[a-z]*|Jul[a-z]*|Aug[a-z]*|Sep[a-z]*|Oct[a-z]*|Nov[a-z]*|Dec[a-z]*)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})?/i);
+    const ddlMatch = body.match(
+      /(?:deadline|complete by|submit before|expires on|due date):?\s*(?:Monday|Tuesday|Wednesday|Thursday|Friday)?,?\s*(Jan[a-z]*|Feb[a-z]*|Mar[a-z]*|Apr[a-z]*|May|Jun[a-z]*|Jul[a-z]*|Aug[a-z]*|Sep[a-z]*|Oct[a-z]*|Nov[a-z]*|Dec[a-z]*)\s+(\d{1,2})(?:st|nd|rd|th)?,?\s*(\d{4})?/i
+    );
     if (ddlMatch) {
       const month = ddlMatch[1];
       const day = ddlMatch[2];
@@ -203,16 +320,20 @@ export function ruleBasedClassifyAndExtract(
     }
   }
 
-  // 7. Next Steps & HR Contact
+  // 8. Next steps & HR
   let nextSteps: string | null = null;
-  if (category === "Interview Invitation") {
-    nextSteps = meetingLink ? `Join interview via Google Meet: ${meetingLink}` : "Confirm attendance with HR";
+  if (sourcePlatform === "LINKEDIN") {
+    nextSteps = "Application submitted via LinkedIn Job Application";
+  } else if (sourcePlatform === "JOBSTREET") {
+    nextSteps = "Application delivered to employer via JobStreet";
+  } else if (sourcePlatform === "INDEED") {
+    nextSteps = "Application submitted via Indeed Apply";
+  } else if (category === "Interview Invitation") {
+    nextSteps = meetingLink ? `Join virtual interview: ${meetingLink}` : "Confirm interview attendance with HR";
   } else if (category === "Assessment Invitation") {
-    nextSteps = deadlineDate ? `Complete technical assessment before deadline` : "Review exam instructions";
+    nextSteps = deadlineDate ? `Complete technical coding test before deadline` : "Review technical exam instructions";
   } else if (category === "OJT / MOA Requirements") {
-    nextSteps = "Submit signed Memorandum of Agreement (MOA) from university";
-  } else if (category === "Acceptance") {
-    nextSteps = "Review offer letter and sign acceptance form";
+    nextSteps = "Submit De La Salle Lipa Endorsement Letter & signed MOA";
   }
 
   const hrMatch = body.match(/(?:Best regards|Regards|Sincerely|HR Team|Contact):\s*\n*([A-Za-z\s]+(?:Recruiter|HR|Talent Acquisition|[A-Z][a-z]+))/i);
@@ -228,6 +349,7 @@ export function ruleBasedClassifyAndExtract(
     companyName: companyName || "Unknown Company",
     positionRole: positionRole || "Internship Applicant",
     extractedStatus,
+    sourcePlatform,
     eventDate,
     eventTime,
     timezone: "Asia/Manila",
@@ -240,10 +362,6 @@ export function ruleBasedClassifyAndExtract(
   };
 }
 
-/**
- * Main classification & extraction dispatcher.
- * Uses Gemini AI if GEMINI_API_KEY is available; otherwise falls back gracefully to rule-based engine.
- */
 export async function classifyAndExtractEmail(
   subject: string,
   body: string,
@@ -258,20 +376,7 @@ export async function classifyAndExtractEmail(
   try {
     const prompt = `You are an AI for ApplyTrack, an internship application organizer. Analyze this email header and body.
 Extract structured recruitment information strictly in JSON format.
-
-Recruitment categories:
-- Application Confirmation
-- Application Update
-- Interview Invitation
-- Interview Confirmation
-- Assessment Invitation
-- Assessment Instructions
-- Assessment Confirmation
-- Final Interview
-- Rejection
-- Acceptance
-- OJT / MOA Requirements
-- Other Recruitment Communication
+Detect if the application came directly or through a job board platform: "DIRECT", "LINKEDIN", "JOBSTREET", or "INDEED".
 
 Sender Name: ${senderName || "Unknown"}
 Sender Email: ${senderEmail || "Unknown"}
@@ -282,18 +387,19 @@ ${body.slice(0, 3000)}
 Output JSON format matching this TypeScript schema:
 {
   "isRecruitment": boolean,
-  "category": string, // One of the 12 categories or null
-  "confidenceScore": number, // 0.0 to 1.0
+  "category": string,
+  "confidenceScore": number,
   "needsReview": boolean,
   "companyName": string | null,
   "positionRole": string | null,
   "extractedStatus": "APPLIED" | "UNDER_REVIEW" | "ASSESSMENT" | "INTERVIEW" | "OFFERED" | "REJECTED" | "OJT_PROCESSING",
-  "eventDate": string | null, // ISO-8601 YYYY-MM-DD
-  "eventTime": string | null, // e.g. "2:00 PM - 3:00 PM"
+  "sourcePlatform": "DIRECT" | "LINKEDIN" | "JOBSTREET" | "INDEED",
+  "eventDate": string | null,
+  "eventTime": string | null,
   "timezone": "Asia/Manila",
   "meetingLink": string | null,
   "location": string | null,
-  "deadlineDate": string | null, // ISO-8601 YYYY-MM-DD
+  "deadlineDate": string | null,
   "hrContact": string | null,
   "nextSteps": string | null
 }`;
@@ -311,7 +417,6 @@ Output JSON format matching this TypeScript schema:
     );
 
     if (!res.ok) {
-      console.warn("Gemini API call failed, falling back to rule-based parser:", res.statusText);
       return ruleBasedClassifyAndExtract(subject, body, senderName, senderEmail);
     }
 
@@ -330,6 +435,7 @@ Output JSON format matching this TypeScript schema:
       companyName: parsed.companyName || "Unknown Company",
       positionRole: parsed.positionRole || "Internship Applicant",
       extractedStatus: parsed.extractedStatus || "APPLIED",
+      sourcePlatform: parsed.sourcePlatform || "DIRECT",
       eventDate: parsed.eventDate ? new Date(parsed.eventDate) : null,
       eventTime: parsed.eventTime || null,
       timezone: parsed.timezone || "Asia/Manila",

@@ -13,12 +13,12 @@ export interface RawGmailEmail {
 }
 
 export const RECRUITMENT_SEARCH_KEYWORDS =
-  'internship OR "job application" OR "application received" OR "application status" OR "interview invitation" OR "technical assessment" OR "online assessment" OR "coding test" OR "HackerRank" OR "Codility" OR "OJT" OR "MOA" OR "regret to inform" OR "offer letter" OR "HR" OR "recruiter"';
+  'internship OR "job application" OR "application received" OR "application status" OR "interview invitation" OR "technical assessment" OR "online assessment" OR "coding test" OR "HackerRank" OR "Codility" OR "OJT" OR "MOA" OR "regret to inform" OR "offer letter" OR "JobStreet" OR "LinkedIn" OR "Indeed" OR "Indeed Apply" OR "application was sent to" OR "application viewed by" OR "recruitment" OR "recruiter"';
 
 export async function fetchRecruitmentEmails(
   accessToken: string,
   refreshToken?: string | null,
-  maxResults = 40,
+  maxResults = 50,
   daysRange: number | "ALL" = 30
 ): Promise<RawGmailEmail[]> {
   const gmail = getAuthenticatedGmailClient(accessToken, refreshToken);

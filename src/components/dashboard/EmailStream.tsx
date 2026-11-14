@@ -37,6 +37,7 @@ export interface EmailItem {
   companyName: string | null;
   positionRole: string | null;
   extractedStatus: string | null;
+  sourcePlatform?: string | null;
   eventDate: string | null;
   eventTime: string | null;
   timezone: string | null;

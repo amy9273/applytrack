@@ -95,9 +95,16 @@ export const EmailDetailModal: React.FC<EmailDetailModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">Email Analysis & Extraction</h2>
-              <p className="text-xs text-slate-500">
-                Source: {email.account.email} • ID: {email.gmailMessageId}
-              </p>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-xs text-slate-500">
+                  Inbox: {email.account.email}
+                </span>
+                {email.sourcePlatform && (
+                  <span className="rounded bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.2">
+                    Via {email.sourcePlatform}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 

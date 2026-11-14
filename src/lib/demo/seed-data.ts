@@ -11,7 +11,7 @@ export interface DemoAccountFixture {
     sender: string;
     senderName: string;
     subject: string;
-    dateOffsetHours: number; // how many hours ago
+    dateOffsetHours: number;
     snippet: string;
     body: string;
   }[];
@@ -25,27 +25,25 @@ export const REAL_ACCOUNTS_FIXTURE: DemoAccountFixture[] = [
     avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Work",
     emails: [
       {
-        gmailMessageId: "real-msg-citco-1",
-        sender: "careers-ph@citco.com",
-        senderName: "Citco Group Careers",
-        subject: "[Citco] Application Received: Software Engineer Intern (Makati / Alabang)",
+        gmailMessageId: "real-msg-citco-linkedin-1",
+        sender: "jobs-listings@linkedin.com",
+        senderName: "LinkedIn Job Applications",
+        subject: "Your application was sent to Citco for Software Engineer Intern",
         dateOffsetHours: 72,
-        snippet: "Dear Angel, thank you for applying for the Software Engineer Intern opening at Citco Group Philippines. We have received your CV...",
-        body: `Dear Angel Amaya B. Balion,
+        snippet: "Your application for Software Engineer Intern at Citco was sent on LinkedIn with your resume attached...",
+        body: `Hi Angel,
 
-Thank you for your interest in joining Citco International Support Services Limited / The Citco Group! We have successfully received your application and resume for the Software Engineer Intern role in our Technology & Development division in Manila (One Ayala / Alabang).
+Your application for Software Engineer Intern at Citco International Support Services was submitted via LinkedIn Easy Apply.
 
-Our Talent Acquisition and Engineering hiring managers are currently reviewing your credentials and programming background. If your qualifications match our team requirements, we will reach out with details regarding the technical assessment.
-
-Applicant: Angel Amaya B. Balion
-School: De La Salle Lipa (BS Information Technology)
 Position: Software Engineer Intern
-Location: One Ayala Avenue, Makati City / Alabang, Muntinlupa (Hybrid)
-Reference ID: CITCO-2026-ENG-491
+Company: Citco International Support Services Limited
+Location: One Ayala Avenue, Makati City / Alabang, Muntinlupa
+Submitted: November 11, 2026
+
+Citco's talent acquisition team has received your profile and resume. You can track this application in your LinkedIn Jobs dashboard.
 
 Best regards,
-Talent Acquisition & Technology Hiring Team
-Citco International Support Services Limited`,
+The LinkedIn Team`,
       },
       {
         gmailMessageId: "real-msg-citco-2",
@@ -53,7 +51,7 @@ Citco International Support Services Limited`,
         senderName: "Citco Technical Hiring",
         subject: "[Citco] Technical Assessment Invitation: Software Engineer Intern Coding Challenge",
         dateOffsetHours: 48,
-        snippet: "Congratulations! Following the initial review of your application, you have been shortlisted to complete our technical assessment on HackerRank...",
+        snippet: "Congratulations! Following the initial review of your LinkedIn application, you have been shortlisted to complete our technical assessment on HackerRank...",
         body: `Hi Angel,
 
 Congratulations! Following the review of your credentials for the Software Engineer Intern position at Citco, we are pleased to invite you to complete our technical assessment.
@@ -98,26 +96,24 @@ Senior Technical Recruiter | Technology & Development
 The Citco Group Limited / Citco Philippines`,
       },
       {
-        gmailMessageId: "real-msg-maya-1",
-        sender: "talent@maya.ph",
-        senderName: "Maya Careers",
-        subject: "Maya Careers: Online Assessment Invitation for Frontend Developer Intern",
+        gmailMessageId: "real-msg-maya-linkedin-1",
+        sender: "jobs-noreply@linkedin.com",
+        senderName: "LinkedIn Notifications",
+        subject: "Maya viewed your application for Frontend Developer Intern",
         dateOffsetHours: 36,
-        snippet: "Thank you for applying to Maya Philippines. You are invited to take the Maya Codility Assessment for Frontend Developer Intern...",
-        body: `Hello Angel,
+        snippet: "Good news! Maya viewed your application for Frontend Developer Intern submitted via LinkedIn...",
+        body: `Hi Angel,
 
-Thank you for your application for the Frontend Developer Intern role at Maya Philippines!
+Maya Philippines recently viewed your application for Frontend Developer Intern.
 
-As the next step in our recruitment process, please complete the online technical assessment on Codility.
+Company: Maya
+Role: Frontend Developer Intern (React / TypeScript)
+Status: Under Review by Recruiter
 
-Test: Frontend Developer Intern Challenge (React / TypeScript / CSS)
-Duration: 75 minutes
-Deadline: Sunday, November 21, 2026 at 6:00 PM (Asia/Manila)
+Keep an eye on your inbox for upcoming assessment invitations or technical interview requests.
 
-Link to test: https://app.codility.com/c/run/maya-fe-intern-2026
-
-Good luck!
-Maya Talent Acquisition Team`,
+Best regards,
+LinkedIn Jobs`,
       },
     ],
   },
@@ -128,24 +124,24 @@ Maya Talent Acquisition Team`,
     avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=DLSL",
     emails: [
       {
-        gmailMessageId: "real-msg-gt-1",
-        sender: "careers@globaltranscoict.com",
-        senderName: "Global Transco ICT Solutions",
-        subject: "GlobalTransco Application Received: Software Development & QA Intern",
+        gmailMessageId: "real-msg-gt-jobstreet-1",
+        sender: "notifications@jobstreet.com",
+        senderName: "JobStreet by SEEK",
+        subject: "Your application for Software Development & QA Intern was delivered to Global Transco",
         dateOffsetHours: 96,
-        snippet: "Dear Angel, thank you for applying for the Software Development & QA Intern position at Global Transco ICT Solutions...",
-        body: `Dear Angel Amaya B. Balion,
+        snippet: "Your JobStreet application has been successfully delivered to Global Transco ICT Solutions...",
+        body: `Hi Angel Amaya B. Balion,
 
-Thank you for applying for the Software Development & QA Intern opening at Global Transco ICT Solutions (EDSA, Makati City).
+Your JobStreet application for Software Development & QA Intern was successfully delivered to Global Transco ICT Solutions.
 
-We have received your resume and cover letter. Our recruitment team is evaluating applications for our upcoming 2026 practicum cohort.
+Employer: Global Transco ICT Solutions (EDSA, Makati City)
+Role: Software Development & QA Intern
+Application ID: JS-PH-2026-94810
 
-We will keep you informed of your application status over the next few business days.
+The employer will contact you directly via your De La Salle Lipa university email regarding the next steps in their practicum screening.
 
-Warm regards,
-Hiring & Talent Acquisition Team
-Global Transco ICT Solutions
-careers@globaltranscoict.com`,
+Thank you for using JobStreet!
+JobStreet Team`,
       },
       {
         gmailMessageId: "real-msg-gt-2",
@@ -153,10 +149,10 @@ careers@globaltranscoict.com`,
         senderName: "GlobalTransco OJT Coordinator",
         subject: "GlobalTransco: OJT / MOA Requirements and Endorsement Letter Request",
         dateOffsetHours: 18,
-        snippet: "Hi Angel, to proceed with your onboarding, please submit your De La Salle Lipa Endorsement Letter and signed MOA...",
+        snippet: "Hi Angel, following your JobStreet submission, please submit your De La Salle Lipa Endorsement Letter and signed MOA...",
         body: `Hi Angel,
 
-We are pleased to inform you that we are advancing your profile for the Software Development & QA Intern position!
+We received your application via JobStreet and are pleased to advance your profile for the Software Development & QA Intern opening!
 
 To proceed with formal onboarding and contract preparation for your practicum hours, please submit the following university compliance documents:
 
@@ -172,22 +168,26 @@ OJT & University Relations Specialist
 Global Transco ICT Solutions`,
       },
       {
-        gmailMessageId: "real-msg-tm-1",
-        sender: "hiring@thinkingmachin.es",
-        senderName: "Thinking Machines Hiring",
-        subject: "Application Update: Data Analyst Intern at Thinking Machines",
+        gmailMessageId: "real-msg-tm-indeed-1",
+        sender: "indeedapply@indeed.com",
+        senderName: "Indeed Apply",
+        subject: "Indeed Application: Data Analyst Intern at Thinking Machines",
         dateOffsetHours: 60,
-        snippet: "Hi Angel, thank you for your patience while we review candidates for the Data Analyst Intern position...",
+        snippet: "Your application was submitted to Thinking Machines Data Science on Indeed...",
         body: `Hi Angel,
 
-Thank you for your patience while we review candidates for the Data Analyst Intern position.
+You applied for Data Analyst Intern at Thinking Machines Data Science through Indeed.
 
-Our engineering and data teams are currently finalizing the shortlist for round 1 interviews. We will provide a definitive update by the end of next week.
+Application Summary:
+Company: Thinking Machines Data Science
+Position: Data Analyst Intern
+Date: November 11, 2026
+Resume: Angel_Amaya_Balion_Resume.pdf
 
-Thank you for your interest in Thinking Machines Data Science!
+Thinking Machines is currently reviewing candidates for their 2026 intern cohort. We will notify you when the employer takes action.
 
 Best,
-The Thinking Machines Team`,
+The Indeed Team`,
       },
     ],
   },
@@ -198,23 +198,24 @@ The Thinking Machines Team`,
     avatarUrl: "https://api.dicebear.com/7.x/bottts/svg?seed=Dev",
     emails: [
       {
-        gmailMessageId: "real-msg-stellar-1",
-        sender: "careers@stellarph.io",
-        senderName: "StellarPH Careers",
-        subject: "[StellarPH] Application Received: Venture Building Intern – Tech",
+        gmailMessageId: "real-msg-stellar-indeed-1",
+        sender: "indeedapply@indeed.com",
+        senderName: "Indeed Apply",
+        subject: "Indeed Application: Venture Building Intern – Tech at StellarPH",
         dateOffsetHours: 80,
-        snippet: "Hi Angel, thank you for applying to StellarPH for the Venture Building Intern – Tech position in BGC Taguig...",
-        body: `Hi Angel Amaya,
+        snippet: "Your application for Venture Building Intern – Tech at StellarPH was successfully submitted...",
+        body: `Hi Angel,
 
-Thank you for applying to StellarPH for the Venture Building Intern – Tech role.
+Your application for Venture Building Intern – Tech at StellarPH (BGC, Taguig) has been submitted via Indeed.
 
-We build modern SaaS and cloud applications, and we love seeing passion for technology and software architecture in our applicants. Your resume and GitHub profile (amy9273) have been submitted to our venture tech leads.
+Company: StellarPH
+Position: Venture Building Intern – Tech
+Portfolio: GitHub (amy9273)
 
-We will contact you shortly if your profile aligns with our current openings.
+The hiring team at StellarPH will review your technical projects and reach out directly.
 
 Best,
-Hiring Team
-StellarPH (BGC, Taguig)`,
+The Indeed Team`,
       },
       {
         gmailMessageId: "real-msg-stellar-2",
@@ -222,10 +223,10 @@ StellarPH (BGC, Taguig)`,
         senderName: "David Santos (StellarPH)",
         subject: "[StellarPH] Interview Invitation: Venture Building Tech Chat & Architecture",
         dateOffsetHours: 8,
-        snippet: "Hi Angel, I would love to chat with you about your background, APIs, and our open Venture Building Intern role on Zoom...",
+        snippet: "Hi Angel, I saw your Indeed application and GitHub (amy9273), and would love to chat with you on Zoom...",
         body: `Hi Angel,
 
-I had the chance to review your resume, full-stack projects, and GitHub repositories, and I would love to chat with you about your technical background and our open Venture Building Intern – Tech position.
+I had the chance to review your resume, full-stack projects, and GitHub repositories from your Indeed application. I would love to chat with you about your technical background and our open Venture Building Intern – Tech position.
 
 Interview Details:
 Date: Friday, November 19, 2026
@@ -316,6 +317,7 @@ export async function seedDemoInboxes(): Promise<{
           companyName: extracted.companyName,
           positionRole: extracted.positionRole,
           extractedStatus: extracted.extractedStatus,
+          sourcePlatform: extracted.sourcePlatform,
           eventDate: extracted.eventDate,
           eventTime: extracted.eventTime,
           timezone: extracted.timezone,
@@ -342,6 +344,7 @@ export async function seedDemoInboxes(): Promise<{
           companyName: extracted.companyName,
           positionRole: extracted.positionRole,
           extractedStatus: extracted.extractedStatus,
+          sourcePlatform: extracted.sourcePlatform,
           eventDate: extracted.eventDate,
           eventTime: extracted.eventTime,
           timezone: extracted.timezone,
@@ -363,12 +366,14 @@ export async function seedDemoInboxes(): Promise<{
           },
           update: {
             currentStatus: extracted.extractedStatus,
+            sourcePlatform: extracted.sourcePlatform,
             lastActivityAt: emailDate,
           },
           create: {
             companyName: extracted.companyName,
             positionRole: extracted.positionRole,
             currentStatus: extracted.extractedStatus,
+            sourcePlatform: extracted.sourcePlatform,
             appliedDate: emailDate,
             lastActivityAt: emailDate,
           },

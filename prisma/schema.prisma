@@ -46,6 +46,7 @@ model EmailMessage {
   companyName     String?
   positionRole    String?
   extractedStatus String?      // APPLIED, UNDER_REVIEW, ASSESSMENT, INTERVIEW, OFFERED, REJECTED, etc.
+  sourcePlatform  String?      @default("DIRECT") // DIRECT, LINKEDIN, JOBSTREET, INDEED
   
   // Schedules & Deadlines
   eventDate       DateTime?
@@ -69,6 +70,7 @@ model EmailMessage {
   @@index([accountId])
   @@index([category])
   @@index([companyName])
+  @@index([sourcePlatform])
 }
 
 model Application {
@@ -76,6 +78,7 @@ model Application {
   companyName    String
   positionRole   String
   currentStatus  String         @default("APPLIED") // APPLIED, ASSESSMENT, INTERVIEW, OFFERED, REJECTED, WITHDRAWN
+  sourcePlatform String?        @default("DIRECT")  // DIRECT, LINKEDIN, JOBSTREET, INDEED
   appliedDate    DateTime       @default(now())
   lastActivityAt DateTime       @default(now())
   notes          String?

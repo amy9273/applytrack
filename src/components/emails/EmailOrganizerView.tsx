@@ -42,6 +42,7 @@ export const EmailOrganizerView: React.FC<EmailOrganizerViewProps> = ({
   const [selectedAccountId, setSelectedAccountId] = useState<string>("ALL");
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [selectedCompany, setSelectedCompany] = useState<string>("ALL");
+  const [selectedPlatform, setSelectedPlatform] = useState<string>("ALL");
   const [localSearch, setLocalSearch] = useState<string>("");
 
   const effectiveSearch = localSearch || globalSearch;
@@ -81,6 +82,19 @@ export const EmailOrganizerView: React.FC<EmailOrganizerViewProps> = ({
     return "bg-slate-100 text-slate-700 border-slate-200";
   };
 
+  const getPlatformBadge = (platform?: string | null) => {
+    switch (platform) {
+      case "LINKEDIN":
+        return <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 border border-blue-200">LinkedIn Apply</span>;
+      case "JOBSTREET":
+        return <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700 border border-purple-200">JobStreet</span>;
+      case "INDEED":
+        return <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-bold text-indigo-700 border border-indigo-200">Indeed</span>;
+      default:
+        return <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-600 border border-slate-200">Direct Email</span>;
+    }
+  };
+
   // Filter emails
   const filteredEmails = useMemo(() => {
     return emails.filter((item) => {
@@ -92,6 +106,10 @@ export const EmailOrganizerView: React.FC<EmailOrganizerViewProps> = ({
       }
       if (selectedCompany !== "ALL" && item.companyName !== selectedCompany) {
         return false;
+      }
+      if (selectedPlatform !== "ALL") {
+        const p = item.sourcePlatform || "DIRECT";
+        if (p !== selectedPlatform) return false;
       }
       if (effectiveSearch.trim()) {
         const q = effectiveSearch.toLowerCase();
@@ -208,6 +226,19 @@ export const EmailOrganizerView: React.FC<EmailOrganizerViewProps> = ({
             ))}
           </select>
 
+          {/* Platform Dropdown */}
+          <select
+            value={selectedPlatform}
+            onChange={(e) => setSelectedPlatform(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 focus:border-blue-500 focus:outline-none shadow-sm"
+          >
+            <option value="ALL">All Platforms</option>
+            <option value="LINKEDIN">LinkedIn</option>
+            <option value="JOBSTREET">JobStreet</option>
+            <option value="INDEED">Indeed</option>
+            <option value="DIRECT">Direct Email</option>
+          </select>
+
           {/* Company Dropdown */}
           <select
             value={selectedCompany}
@@ -272,6 +303,7 @@ export const EmailOrganizerView: React.FC<EmailOrganizerViewProps> = ({
                         >
                           {email.category}
                         </span>
+                        {getPlatformBadge(email.sourcePlatform)}
 
                         {email.needsReview && (
                           <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700 border border-rose-200">
