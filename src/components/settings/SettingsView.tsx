@@ -227,7 +227,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-500 mt-0.5">
-                      {acc.name || "Angel Amaya Balion"} • {acc._count?.emails ?? 0} recruitment emails identified
+                      {acc.name || "Connected Inbox"} • {acc._count?.emails ?? 0} recruitment emails identified
                     </p>
                   </div>
                 </div>

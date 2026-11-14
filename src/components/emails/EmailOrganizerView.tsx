@@ -283,7 +283,7 @@ export const EmailOrganizerView: React.FC<EmailOrganizerViewProps> = ({
             <Mail className="h-10 w-10 text-slate-300 mx-auto mb-3" />
             <h4 className="text-sm font-bold text-slate-800">No recruitment emails found</h4>
             <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-              Try adjusting your category or company filters, or click &quot;Load Angel&apos;s Inboxes&quot; to populate.
+              Try adjusting your search terms, timeframe, or category filters.
             </p>
           </div>
         ) : (

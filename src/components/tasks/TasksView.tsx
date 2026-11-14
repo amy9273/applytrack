@@ -26,7 +26,7 @@ export const TasksView: React.FC = () => {
   const [tasks, setTasks] = useState<TaskItem[]>([
     {
       id: "task-1",
-      title: "Request De La Salle Lipa Endorsement Letter & MOA for GlobalTransco",
+      title: "Request University Endorsement Letter & MOA for Practicum Placement",
       company: "Global Transco ICT Solutions",
       category: "SCHOOL_MOA",
       assignedTo: "SCHOOL",
@@ -94,7 +94,7 @@ export const TasksView: React.FC = () => {
       case "ME":
         return <span className="rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">Action Required: Me</span>;
       case "SCHOOL":
-        return <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">Action: De La Salle Lipa</span>;
+        return <span className="rounded-md bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-700">Action: University OJT Office</span>;
       case "COMPANY":
         return <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">Waiting on Company</span>;
     }

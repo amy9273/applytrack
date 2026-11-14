@@ -30,6 +30,7 @@ interface SidebarProps {
   totalApplicationsCount: number;
   needsReviewCount: number;
   onOpenAccounts: () => void;
+  isOwner?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -40,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   totalApplicationsCount,
   needsReviewCount,
   onOpenAccounts,
+  isOwner = false,
 }) => {
   const navItems = [
     {
@@ -60,25 +62,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: "Applications",
       icon: Briefcase,
       badge: totalApplicationsCount > 0 ? totalApplicationsCount : null,
-      badgeColor: "bg-indigo-100 text-indigo-700",
+      badgeColor: "bg-emerald-100 text-emerald-700",
     },
     {
       id: "calendar" as NavSection,
-      label: "Calendar & Schedules",
+      label: "Calendar & Deadlines",
       icon: Calendar,
-      badge: "3",
-      badgeColor: "bg-amber-100 text-amber-700",
+      badge: null,
     },
     {
       id: "tasks" as NavSection,
-      label: "Tasks & OJT MOA",
+      label: "Tasks & Action Items",
       icon: CheckSquare,
-      badge: needsReviewCount > 0 ? `${needsReviewCount}` : "2",
-      badgeColor: "bg-purple-100 text-purple-700",
+      badge: null,
     },
     {
       id: "settings" as NavSection,
-      label: "Connected Accounts",
+      label: isOwner ? "Connected Accounts" : "System & Settings",
       icon: Settings,
       badge: null,
     },
@@ -138,38 +138,52 @@ export const Sidebar: React.FC<SidebarProps> = ({
         })}
       </div>
 
-      {/* Connected Accounts Status Card */}
-      <div className="p-3 border-t border-slate-100">
-        <div
-          onClick={onOpenAccounts}
-          className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3 hover:bg-slate-100/80 transition-all cursor-pointer group"
-        >
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
-              <Inbox className="h-3.5 w-3.5 text-blue-600" /> Inboxes Active
-            </span>
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+      {/* Connected Accounts Status Card (Visible only in Owner Mode) */}
+      {isOwner && (
+        <div className="p-3 border-t border-slate-100">
+          <div
+            onClick={onOpenAccounts}
+            className="rounded-xl border border-slate-200/90 bg-slate-50/70 p-3 hover:bg-slate-100/80 transition-all cursor-pointer group"
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[11px] font-semibold text-slate-700 flex items-center gap-1.5">
+                <Inbox className="h-3.5 w-3.5 text-blue-600" /> Inboxes Active
+              </span>
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+            </div>
+            <div className="text-xs font-bold text-slate-900">
+              {accountsCount} {accountsCount === 1 ? "Gmail Account" : "Gmail Accounts"}
+            </div>
+            <p className="text-[10px] text-slate-500 mt-0.5 group-hover:text-blue-600 transition-colors">
+              Click to manage or add accounts &rarr;
+            </p>
           </div>
-          <div className="text-xs font-bold text-slate-900">
-            {accountsCount} {accountsCount === 1 ? "Gmail Account" : "Gmail Accounts"}
-          </div>
-          <p className="text-[10px] text-slate-500 mt-0.5 group-hover:text-blue-600 transition-colors">
-            Click to manage or add accounts &rarr;
-          </p>
         </div>
-      </div>
+      )}
 
       {/* User Profile Card */}
       <div className="border-t border-slate-100 p-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white text-xs font-bold shadow-sm">
-            AB
+        {isOwner ? (
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 text-white text-xs font-bold shadow-sm">
+              AB
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-xs font-bold text-slate-900">Angel Amaya Balion</div>
+              <div className="truncate text-[11px] text-slate-400 font-medium">De La Salle Lipa • BS IT</div>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-bold text-slate-900">Angel Amaya Balion</div>
-            <div className="truncate text-[11px] text-slate-400 font-medium">De La Salle Lipa • BS IT</div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold">
+              👁️
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-xs font-bold text-slate-800">Visitor Mode</div>
+              <div className="truncate text-[11px] text-slate-400 font-medium">Public Showcase View</div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </aside>
   );

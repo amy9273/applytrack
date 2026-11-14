@@ -61,7 +61,7 @@ export const OwnerLoginModal: React.FC<OwnerLoginModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-slate-900">Owner Access Verification</h2>
-              <p className="text-xs text-slate-500">Angel Balion&apos;s Private Workspace</p>
+              <p className="text-xs text-slate-500">Live Inboxes &amp; Private Sync</p>
             </div>
           </div>
           <button

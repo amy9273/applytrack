@@ -125,7 +125,7 @@ export default function Home() {
       if (res.ok) {
         setBanner({
           type: "success",
-          message: `Loaded Angel Balion's 3 inboxes with ${data.emailsCount} recruitment emails (Citco, StellarPH, GlobalTransco, Maya, Canva)!`,
+          message: `Loaded 3 recruitment inboxes with ${data.emailsCount} emails (Citco, StellarPH, GlobalTransco, Maya, Canva)!`,
         });
         await loadData();
         setIsAccountsModalOpen(false);
@@ -201,6 +201,7 @@ export default function Home() {
         totalApplicationsCount={applications.length}
         needsReviewCount={needsReviewCount}
         onOpenAccounts={() => setIsAccountsModalOpen(true)}
+        isOwner={isOwner}
       />
 
       {/* Mobile Drawer Menu */}
@@ -235,6 +236,7 @@ export default function Home() {
                   setIsAccountsModalOpen(true);
                   setIsMobileMenuOpen(false);
                 }}
+                isOwner={isOwner}
               />
             </div>
           </div>
@@ -273,7 +275,7 @@ export default function Home() {
                     Visitor Demo Mode (Strict Candidate Privacy)
                   </h4>
                   <p className="text-[11px] text-amber-800">
-                    Displaying sanitized portfolio recruitment data (Canva, Thinking Machines, Citco, Maya). None of Angel&apos;s real inboxes or emails are accessible to visitors.
+                    Displaying sanitized portfolio recruitment data (Canva, Thinking Machines, Citco, Maya). None of the candidate&apos;s real inboxes or private emails are accessible to visitors.
                   </p>
                 </div>
               </div>
@@ -326,6 +328,7 @@ export default function Home() {
               onNavigateToTasks={() => setCurrentSection("tasks")}
               onSync={handleSyncAll}
               isSyncing={isSyncing}
+              isOwner={isOwner}
             />
           )}
 
