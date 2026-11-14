@@ -100,18 +100,28 @@ export const OwnerLoginModal: React.FC<OwnerLoginModalProps> = ({
             {isLoading ? "Unlocking..." : "Unlock"}
           </button>
 
-          <div className="text-center pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                onClose();
-                onOpenGoogleOAuth();
-              }}
-              className="text-xs text-slate-500 hover:text-blue-600 transition-colors"
-            >
-              or sign in with Google
-            </button>
+          <div className="relative my-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-slate-100" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-slate-400 text-[10px] font-semibold">Or</span>
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onOpenGoogleOAuth();
+            }}
+            className="w-full flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 py-2 text-xs font-semibold text-slate-700 transition-colors shadow-sm"
+          >
+            <svg className="h-3.5 w-3.5 fill-current text-blue-600" viewBox="0 0 24 24">
+              <path d="M12.24 10.285V13.8h6.887C18.2 16.14 15.645 17.8 12.24 17.8c-3.263 0-5.92-2.657-5.92-5.92s2.657-5.92 5.92-5.92c1.474 0 2.82.543 3.86 1.436l2.673-2.674C17.07 3.197 14.81 2.3 12.24 2.3 6.945 2.3 2.65 6.595 2.65 11.89s4.295 9.59 9.59 9.59c5.534 0 9.207-3.89 9.207-9.37 0-.63-.06-1.24-.173-1.825H12.24z" />
+            </svg>
+            <span>Sign In with Google</span>
+          </button>
         </form>
       </div>
     </div>

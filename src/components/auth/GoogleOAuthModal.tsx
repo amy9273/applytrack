@@ -27,6 +27,8 @@ export const GoogleOAuthModal: React.FC<GoogleOAuthModalProps> = ({
   const [clientId, setClientId] = useState("");
   const [clientSecret, setClientSecret] = useState("");
   const [redirectUri, setRedirectUri] = useState("http://localhost:3000/api/auth/google/callback");
+  const [isConfigured, setIsConfigured] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -38,6 +40,13 @@ export const GoogleOAuthModal: React.FC<GoogleOAuthModalProps> = ({
         .then((res) => res.json())
         .then((data) => {
           if (data.redirectUri) setRedirectUri(data.redirectUri);
+          if (data.configured) {
+            setIsConfigured(true);
+            setShowConfig(false);
+          } else {
+            setIsConfigured(false);
+            setShowConfig(true);
+          }
         })
         .catch(() => {});
     }
@@ -132,92 +141,127 @@ export const GoogleOAuthModal: React.FC<GoogleOAuthModalProps> = ({
             </div>
           </div>
 
-          {/* Quick 2-Minute Google Cloud Credentials Instructions */}
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2.5 text-xs text-slate-700">
-            <span className="font-bold text-slate-900 block text-xs">
-              Need OAuth credentials? (Takes 2 minutes):
-            </span>
-            <ol className="list-decimal list-inside space-y-1.5 text-slate-600 leading-relaxed">
-              <li>
-                Open{" "}
-                <a
-                  href="https://console.cloud.google.com/apis/credentials"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="font-bold text-blue-600 underline inline-flex items-center gap-0.5"
-                >
-                  Google Cloud Console &rarr; Credentials <ExternalLink className="h-3 w-3" />
-                </a>
-              </li>
-              <li>
-                Click <strong>Create Credentials &rarr; OAuth 2.0 Client ID</strong> (Application type: <em>Web application</em>).
-              </li>
-              <li>
-                Under <strong>Authorized redirect URIs</strong>, add this exact URL:
-                <div className="mt-1 flex items-center justify-between gap-2 rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 font-mono text-[11px] text-slate-800">
-                  <span className="truncate">{redirectUri}</span>
-                  <button
-                    type="button"
-                    onClick={copyToClipboard}
-                    className="inline-flex items-center gap-1 rounded bg-slate-100 hover:bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700 transition-colors shrink-0"
-                  >
-                    {copied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
-                    <span>{copied ? "Copied" : "Copy"}</span>
-                  </button>
-                </div>
-              </li>
-              <li>Enable the <strong>Gmail API</strong> in your Google Cloud project (APIs & Services &rarr; Enable APIs).</li>
-            </ol>
-          </div>
+          {/* Direct 1-Click Sign-In if Credentials are set */}
+          {isConfigured && (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/auth/google/url");
+                    const data = await res.json();
+                    if (data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      setError("Failed to generate Google Sign-in URL.");
+                    }
+                  } catch {
+                    setError("Failed to connect to Google.");
+                  }
+                }}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-xs font-bold text-white hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+              >
+                <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M12.24 10.285V13.8h6.887C18.2 16.14 15.645 17.8 12.24 17.8c-3.263 0-5.92-2.657-5.92-5.92s2.657-5.92 5.92-5.92c1.474 0 2.82.543 3.86 1.436l2.673-2.674C17.07 3.197 14.81 2.3 12.24 2.3 6.945 2.3 2.65 6.595 2.65 11.89s4.295 9.59 9.59 9.59c5.534 0 9.207-3.89 9.207-9.37 0-.63-.06-1.24-.173-1.825H12.24z" />
+                </svg>
+                <span>Continue with Google Sign-In</span>
+              </button>
 
-          {error && (
-            <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800 flex items-start gap-2">
-              <AlertCircle className="h-4 w-4 text-rose-600 mt-0.5 shrink-0" />
-              <span>{error}</span>
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowConfig(!showConfig)}
+                  className="text-[11px] text-slate-500 hover:text-slate-800 underline font-medium"
+                >
+                  {showConfig ? "Hide credentials setup" : "Configure or Change OAuth Credentials"}
+                </button>
+              </div>
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleConnect} className="space-y-3.5">
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                Google Client ID *
-              </label>
-              <input
-                type="text"
-                required
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                placeholder="e.g. 1234567890-abcdefgh.apps.googleusercontent.com"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
+          {(!isConfigured || showConfig) && (
+            <>
+              {/* Quick 2-Minute Google Cloud Credentials Instructions */}
+              <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 space-y-2.5 text-xs text-slate-700">
+                <span className="font-bold text-slate-900 block text-xs">
+                  Need OAuth credentials? (Takes 2 minutes):
+                </span>
+                <ol className="list-decimal list-inside space-y-1.5 text-slate-600 leading-relaxed">
+                  <li>
+                    Open{" "}
+                    <a
+                      href="https://console.cloud.google.com/apis/credentials"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-bold text-blue-600 underline inline-flex items-center gap-0.5"
+                    >
+                      Google Cloud Console &rarr; Credentials <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </li>
+                  <li>
+                    Click <strong>Create Credentials &rarr; OAuth 2.0 Client ID</strong> (Application type: <em>Web application</em>).
+                  </li>
+                  <li>
+                    Under <strong>Authorized redirect URIs</strong>, add this exact URL:
+                    <div className="mt-1 flex items-center justify-between gap-2 rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 font-mono text-[11px] text-slate-800">
+                      <span className="truncate">{redirectUri}</span>
+                      <button
+                        type="button"
+                        onClick={copyToClipboard}
+                        className="inline-flex items-center gap-1 rounded bg-slate-100 hover:bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700 transition-colors shrink-0"
+                      >
+                        {copied ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3" />}
+                        <span>{copied ? "Copied" : "Copy"}</span>
+                      </button>
+                    </div>
+                  </li>
+                  <li>Enable the <strong>Gmail API</strong> in your Google Cloud project (APIs & Services &rarr; Enable APIs).</li>
+                </ol>
+              </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-800 mb-1">
-                Google Client Secret *
-              </label>
-              <input
-                type="password"
-                required
-                value={clientSecret}
-                onChange={(e) => setClientSecret(e.target.value)}
-                placeholder="e.g. GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxx"
-                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
+              {/* Form */}
+              <form onSubmit={handleConnect} className="space-y-3.5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">
+                    Google Client ID *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={clientId}
+                    onChange={(e) => setClientId(e.target.value)}
+                    placeholder="e.g. 1234567890-abcdefgh.apps.googleusercontent.com"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
 
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
-              >
-                <Lock className="h-4 w-4" />
-                {isSubmitting ? "Connecting to Google..." : "Save Credentials & Sign In with Google"}
-              </button>
-            </div>
-          </form>
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1">
+                    Google Client Secret *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={clientSecret}
+                    onChange={(e) => setClientSecret(e.target.value)}
+                    placeholder="e.g. GOCSPX-xxxxxxxxxxxxxxxxxxxxxxxx"
+                    className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none"
+                  />
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-blue-700 shadow-md shadow-blue-500/20 transition-all disabled:opacity-50"
+                  >
+                    <Lock className="h-4 w-4" />
+                    {isSubmitting ? "Connecting to Google..." : "Save Credentials & Sign In with Google"}
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
 
           {/* Wipe Simulated Data Option */}
           <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
