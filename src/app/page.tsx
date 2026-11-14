@@ -263,25 +263,16 @@ export default function Home() {
 
         {/* Workspace Body */}
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 space-y-6 max-w-7xl w-full mx-auto">
-          {/* Visitor Mode Privacy Ribbon */}
+          {/* Visitor Mode Ribbon */}
           {!isOwner && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-xl bg-amber-500/20 text-amber-800 flex items-center justify-center font-bold text-sm shrink-0">
-                  🛡️
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-amber-950">
-                    Visitor Demo Mode (Strict Candidate Privacy)
-                  </h4>
-                  <p className="text-[11px] text-amber-800">
-                    Displaying sanitized portfolio recruitment data (Canva, Thinking Machines, Citco, Maya). None of the candidate&apos;s real inboxes or private emails are accessible to visitors.
-                  </p>
-                </div>
+            <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-2.5 flex items-center justify-between gap-3 text-xs text-amber-900 shadow-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">👁️</span>
+                <span><strong>Visitor Mode:</strong> Viewing sample recruitment data.</span>
               </div>
               <button
                 onClick={() => setIsOwnerModalOpen(true)}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-slate-800 shadow-sm transition-all shrink-0"
+                className="rounded-lg bg-slate-900 px-3 py-1 text-xs font-semibold text-white hover:bg-slate-800 transition-colors shrink-0"
               >
                 Owner Login
               </button>
